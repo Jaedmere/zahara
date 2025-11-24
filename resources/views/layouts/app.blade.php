@@ -15,12 +15,12 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-{{-- FONDO BASE: Usamos un tono muy oscuro (Slate 900/950) para que contraste con la tarjeta blanca --}}
+{{-- FONDO BASE --}}
 <body class="h-full antialiased bg-[#0B1121] text-slate-800 font-sans selection:bg-indigo-500 selection:text-white overflow-hidden">
     
     <div x-data="{ sidebarOpen: false }" class="flex h-full w-full relative">
 
-        {{-- FONDO DECORATIVO (Glows sutiles detrás del sidebar) --}}
+        {{-- FONDO DECORATIVO --}}
         <div class="fixed inset-0 pointer-events-none z-0">
             <div class="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-600/20 blur-[120px] rounded-full mix-blend-screen opacity-40"></div>
             <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full mix-blend-screen opacity-40"></div>
@@ -48,7 +48,7 @@
                 @php
                     $navItem = function($route, $label, $icon) {
                         $active = request()->routeIs($route.'*'); // Asterisco para sub-rutas
-                        // Estilos: Texto blanco si activo, gris si inactivo. Fondo suave si activo.
+                        
                         $classes = $active 
                             ? 'bg-white/10 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]' 
                             : 'text-slate-400 hover:text-white hover:bg-white/5';
@@ -63,17 +63,17 @@
                     };
 
                     // Iconos SVG (Phosphor style / Outline)
-                    $iHome = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>';
-                    $iEds  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M7 7h10"></path><path d="M7 12h10"></path><path d="M7 17h10"></path></svg>'; 
-                    // Agrega más iconos según necesites
+                    $iHome    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>';
+                    $iEds     = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M7 7h10"></path><path d="M7 12h10"></path><path d="M7 17h10"></path></svg>'; 
+                    $iClients = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>';
                 @endphp
 
                 <div class="px-3 mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Principal</div>
+                
                 {!! $navItem('dashboard', 'Inicio', $iHome) !!}
                 {!! $navItem('eds.index', 'Estaciones EDS', $iEds) !!}
-                
-                <!-- Ejemplo de más items -->
-                {{-- {!! $navItem('clientes.index', 'Clientes', $iUser) !!} --}}
+                {!! $navItem('clientes.index', 'Clientes', $iClients) !!}
+
             </nav>
 
             <!-- Perfil Usuario (Bottom) -->
@@ -88,7 +88,7 @@
                     </div>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
-                        <button class="text-slate-500 hover:text-red-400 transition-colors p-1">
+                        <button class="text-slate-500 hover:text-red-400 transition-colors p-1" title="Cerrar Sesión">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                         </button>
                     </form>
@@ -99,8 +99,6 @@
         <!-- ================= MAIN CONTENT (Tarjeta Flotante) ================= -->
         <main class="flex-1 flex flex-col h-full relative z-10 lg:py-3 lg:pr-3 transition-all duration-300">
             
-            <!-- CONTENEDOR FLOTANTE: Este es el truco del diseño moderno.
-                 Es una "hoja" blanca redondeada que flota sobre el fondo oscuro -->
             <div class="flex-1 bg-[#F8FAFC] lg:rounded-3xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col border border-white/10 theme-light relative isolate">
                 
                 <!-- Header Sticky -->
@@ -168,7 +166,7 @@
         </main>
     </div>
 
-  <!-- ========================================== -->
+    <!-- ========================================== -->
     <!-- GLOBAL CONFIRMATION MODAL (ZAHARA STYLE)   -->
     <!-- ========================================== -->
     <div x-data="{ 
@@ -194,7 +192,7 @@
          role="dialog" 
          aria-modal="true">
 
-        <!-- Backdrop (Fondo oscuro borroso) -->
+        <!-- Backdrop -->
         <div x-show="open"
              x-transition:enter="ease-out duration-300"
              x-transition:enter-start="opacity-0"
@@ -221,7 +219,7 @@
                     
                     <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                         <div class="sm:flex sm:items-start gap-4">
-                            <!-- Icono de Advertencia Animado -->
+                            <!-- Icono -->
                             <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10 ring-8 ring-red-50">
                                 <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
@@ -237,7 +235,7 @@
                         </div>
                     </div>
                     
-                    <!-- Botones de Acción -->
+                    <!-- Botones -->
                     <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-slate-100 gap-3">
                         <button type="button" 
                                 @click="confirmAction()"

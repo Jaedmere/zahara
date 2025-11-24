@@ -3,7 +3,7 @@
         <thead>
             {{-- Header con fondo sutil y tipografía técnica --}}
             <tr class="border-b border-slate-200 bg-slate-50/50 text-[11px] uppercase tracking-widest text-slate-500 font-bold">
-                <th class="px-6 py-4">Código / Estado</th>
+                <th class="px-6 py-4">Código</th>
                 <th class="px-6 py-4">Estación</th>
                 <th class="px-6 py-4">NIT</th>
                 <th class="px-6 py-4 text-right">Acciones</th>

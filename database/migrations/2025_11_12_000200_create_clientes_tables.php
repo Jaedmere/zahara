@@ -8,14 +8,13 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('clientes', function (Blueprint $table) {
             $table->id();
-            $table->string('tipo_id', 5); // NIT/CC
+            $table->string('tipo_id', 5); // NIT, CC, CE, etc.
             $table->string('documento')->unique();
             $table->string('razon_social');
             $table->string('email')->nullable();
             $table->string('telefono')->nullable();
             $table->string('direccion')->nullable();
-            $table->unsignedInteger('plazo_dias')->default(0);
-            $table->string('lista_precios')->nullable();
+            // Se retiraron plazo_dias y lista_precios
             $table->enum('estado', ['activo','bloqueado'])->default('activo');
             $table->text('notas')->nullable();
             $table->softDeletes();
