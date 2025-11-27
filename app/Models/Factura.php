@@ -4,32 +4,60 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
 class Factura extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
-    protected $table = 'facturas';
     protected $fillable = [
-        'prefijo','consecutivo','cliente_id','eds_id','fecha_emision','fecha_vencimiento',
-        'subtotal','iva','retenciones','total','estado','notas'
+        'prefijo', 'consecutivo', 'cliente_id', 'eds_id',
+        'fecha_emision', 'fecha_vencimiento',
+        'valor_neto', 'descuento', 'valor_total', 'saldo_pendiente',
+        'estado', 'notas'
     ];
 
     protected $casts = [
         'fecha_emision' => 'date',
         'fecha_vencimiento' => 'date',
+        'valor_neto' => 'decimal:2',
+        'descuento' => 'decimal:2',
+        'valor_total' => 'decimal:2',
+        'saldo_pendiente' => 'decimal:2',
     ];
 
+    // --- RELACIONES ---
     public function cliente() { return $this->belongsTo(Cliente::class); }
-    public function eds()     { return $this->belongsTo(EDS::class); }
+    public function eds() { return $this->belongsTo(EDS::class); }
+    // public function abonos() { return $this->hasMany(Abono::class); } // Próximamente
 
-    public function adjuntos(): HasMany { return $this->hasMany(FacturaAdjunto::class); }
+    // --- COMPUTADOS (Accessors) ---
+    
+    // Calcula días de mora (o días faltantes si es negativo)
+    public function getDiasVencidosAttribute()
+    {
+        if ($this->estado === 'pagada') return 0;
+        return Carbon::now()->diffInDays($this->fecha_vencimiento, false) * -1; 
+        // Si retorna positivo: Días de mora. Negativo: Días para vencer.
+    }
 
-    public function detallesAbono(): HasMany { return $this->hasMany(AbonoDetalle::class); }
+    public function getNumeroCompletoAttribute()
+    {
+        return trim($this->prefijo . ' ' . $this->consecutivo);
+    }
 
-    public function getSaldoAttribute(): float {
-        $aplicado = $this->detallesAbono()->sum('valor_aplicado') + 0.0;
-        return round((float)$this->total - (float)$aplicado, 2);
+    // --- SCOPES (Consultas Rápidas) ---
+
+    public function scopePendientes($query)
+    {
+        return $query->where('saldo_pendiente', '>', 0)->where('estado', '!=', 'anulada');
+    }
+
+    public function scopeVencidas($query)
+    {
+        return $query->where('fecha_vencimiento', '<', Carbon::now())
+                     ->where('saldo_pendiente', '>', 0)
+                     ->where('estado', '!=', 'anulada');
     }
 }

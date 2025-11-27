@@ -6,8 +6,14 @@ use Illuminate\Http\Request;
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\{
-    EDSController, ClienteController, FacturaController, AbonoController,
-    InformeController, AuditoriaController, UserController, RoleController // <--- Agregamos RoleController
+    EDSController, 
+    ClienteController, 
+    FacturaController, 
+    AbonoController,
+    InformeController, 
+    AuditoriaController, 
+    UserController, 
+    RoleController
 };
 
 // --- Auth (público) ---
@@ -30,13 +36,18 @@ Route::middleware('auth')->group(function () {
     Route::resource('eds', EDSController::class);
     Route::resource('clientes', ClienteController::class);
     
+    // --- FACTURACIÓN ---
+    // IMPORTANTE: Esta ruta va ANTES del resource para evitar conflictos
+    Route::get('facturas/exportar', [FacturaController::class, 'export'])->name('facturas.export');
+    Route::resource('facturas', FacturaController::class);
+
+    // Módulo de Abonos
+    Route::get('/api/facturas-pendientes', [AbonoController::class, 'buscarFacturas'])->name('api.facturas.pendientes');
+    Route::resource('abonos', AbonoController::class)->only(['index', 'create', 'store', 'destroy']);
+    
     // Módulos Administrativos
     Route::resource('users', UserController::class);
-    Route::resource('roles', RoleController::class); // <--- NUEVA RUTA DE ROLES
-
-    // Facturación y Cartera
-    Route::resource('facturas', FacturaController::class);
-    Route::resource('abonos', AbonoController::class)->only(['index','create','store','destroy']);
+    Route::resource('roles', RoleController::class);
 
     // Reportes
     Route::get('informes/aging', [InformeController::class, 'aging'])->name('informes.aging');

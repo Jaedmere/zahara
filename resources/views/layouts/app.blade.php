@@ -6,22 +6,14 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Zahara Tech')</title>
 
-    {{-- ================================================================= --}}
-    {{-- FAVICON BLINDADO (SOLUCIÓN DEFINITIVA)                            --}}
-    {{-- 1. Asegúrate de que 'favicon.svg' esté en la carpeta public/      --}}
-    {{-- 2. Asegúrate de haber BORRADO 'favicon.ico' de public/            --}}
-    {{-- ================================================================= --}}
-    
-    {{-- Forzar tipo MIME y ruta absoluta --}}
+    {{-- Favicon SVG Anti-Caché --}}
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=3">
     <link rel="shortcut icon" href="{{ asset('favicon.svg') }}?v=3">
     <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}?v=3">
 
-    {{-- Scripts y Estilos --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <style>
-        /* ... tus estilos existentes ... */
         .input-pill {
             @apply w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none;
         }
@@ -43,7 +35,7 @@
     </style>
 </head>
 <body class="bg-[#F8FAFC] font-sans text-slate-600 antialiased" x-data="{ sidebarOpen: false }">
-    <!-- ... resto del body igual ... -->
+
     <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition.opacity 
          class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden" style="display: none;"></div>
 
@@ -80,17 +72,20 @@
                 $iClients = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>';
                 $iUsers = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>';
                 $iRoles = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>';
+                $iAbonos = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a1 1 0 11-2 0 1 1 0 012 0z"/></svg>';
             @endphp
 
             <div class="px-3 mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Operación</div>
             {!! $navItem('dashboard', 'Inicio', $iHome) !!}
             
-            {{-- MENÚ ABIERTO (Sin restricciones @can por ahora para desarrollo) --}}
             {!! $navItem('eds.index', 'Estaciones EDS', $iEds) !!}
             {!! $navItem('clientes.index', 'Clientes', $iClients) !!}
-            {!! $navItem('facturas.index', 'Facturación', '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>') !!}
+            
+            {{-- CAMBIO DE NOMBRE A 'CUENTAS' --}}
+            {!! $navItem('facturas.index', 'Cuentas', '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>') !!}
+            
+            {!! $navItem('abonos.index', 'Abonos / Recibos', $iAbonos) !!}
 
-            {{-- SECCIÓN ADMIN TAMBIÉN ABIERTA TEMPORALMENTE --}}
             <div class="mt-8 px-3 mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Administración</div>
             {!! $navItem('users.index', 'Usuarios', $iUsers) !!}
             {!! $navItem('roles.index', 'Roles y Permisos', $iRoles) !!}
