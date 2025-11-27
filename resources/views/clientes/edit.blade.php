@@ -33,7 +33,6 @@
                     
                     <!-- Tipo ID + Documento -->
                     <div class="md:col-span-5 flex gap-3">
-                        <!-- Tipo ID -->
                         <div class="w-1/3">
                             <label class="block text-sm font-medium text-slate-700 mb-1.5">Tipo</label>
                             <div class="relative">
@@ -50,7 +49,6 @@
                             </div>
                         </div>
 
-                        <!-- Documento -->
                         <div class="w-2/3">
                             <label class="block text-sm font-medium text-slate-700 mb-1.5">Número <span class="text-red-500">*</span></label>
                             <div class="relative">
@@ -76,13 +74,12 @@
                         @error('razon_social') <p class="mt-1 text-xs text-red-500 font-medium">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Estado (Radio Cards) -->
+                    <!-- Estado -->
                     <div class="md:col-span-12 pt-2">
                         <span class="block text-sm font-medium text-slate-700 mb-3">Estado Operativo</span>
                         <div class="flex gap-4">
                             @php $estadoActual = old('estado', $cliente->estado); @endphp
-
-                            <!-- Opción Activo -->
+                            
                             <label class="cursor-pointer relative">
                                 <input type="radio" name="estado" value="activo" class="peer sr-only" {{ $estadoActual == 'activo' ? 'checked' : '' }}>
                                 <div class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 peer-checked:bg-emerald-50 peer-checked:border-emerald-200 peer-checked:text-emerald-700 transition-all flex items-center gap-2 shadow-sm">
@@ -91,7 +88,6 @@
                                 </div>
                             </label>
 
-                            <!-- Opción Bloqueado -->
                             <label class="cursor-pointer relative">
                                 <input type="radio" name="estado" value="bloqueado" class="peer sr-only" {{ $estadoActual == 'bloqueado' ? 'checked' : '' }}>
                                 <div class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 peer-checked:bg-red-50 peer-checked:border-red-200 peer-checked:text-red-700 transition-all flex items-center gap-2 shadow-sm">
@@ -101,15 +97,12 @@
                             </label>
                         </div>
                     </div>
-
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 
-                <!-- ========================================== -->
-                <!-- SECCIÓN 2: CONTACTO Y NOTAS                -->
-                <!-- ========================================== -->
+                <!-- SECCIÓN 2: CONTACTO -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm h-full">
                     <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -149,51 +142,108 @@
                 </div>
 
                 <!-- ========================================== -->
-                <!-- SECCIÓN 3: ASIGNACIÓN DE EDS (VISUAL)      -->
+                <!-- SECCIÓN 3: ASIGNACIÓN INTELIGENTE DE EDS   -->
                 <!-- ========================================== -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm h-full flex flex-col">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                            Estaciones Autorizadas
-                        </h3>
-                        <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-md">Selección Múltiple</span>
+
+                @php
+                    // 1. OBTENEMOS LOS IDS PREVIAMENTE ASIGNADOS
+                    // Si hubo error de validación, usamos old(). Si no, sacamos los de la BD.
+                    $assignedIds = old('eds_ids', $cliente->eds->pluck('id')->toArray());
+                    
+                    // 2. PREPARAMOS DATOS LIGEROS PARA ALPINE
+                    $edsData = $eds->map(function($e) {
+                        return [
+                            'id' => $e->id,
+                            'search_text' => strtolower($e->nombre . ' ' . $e->codigo)
+                        ];
+                    })->values();
+                @endphp
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm h-full flex flex-col"
+                     x-data="{ 
+                        search: '',
+                        selected: {{ json_encode($assignedIds) }}, // ¡AQUÍ ESTÁ LA CLAVE! Alpine arranca con lo que ya tiene el cliente
+                        stations: {{ json_encode($edsData) }},     
+                        
+                        get filteredStations() {
+                            if (!this.search) return this.stations;
+                            return this.stations.filter(s => s.search_text.includes(this.search.toLowerCase()));
+                        },
+
+                        toggleAll(state) {
+                            const visibleIds = this.filteredStations.map(s => s.id);
+                            
+                            if (state) {
+                                // Agregar visibles al array seleccionado sin duplicar
+                                this.selected = [...new Set([...this.selected, ...visibleIds])];
+                            } else {
+                                // Quitar visibles del array seleccionado
+                                this.selected = this.selected.filter(id => !visibleIds.includes(id));
+                            }
+                        }
+                     }"
+                >
+                    <!-- Header con Buscador y Acciones -->
+                    <div class="flex flex-col gap-3 mb-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                Estaciones (<span x-text="selected.length"></span>)
+                            </h3>
+                            
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="toggleAll(true)" class="text-[10px] font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors">
+                                    Todas
+                                </button>
+                                <button type="button" @click="toggleAll(false)" class="text-[10px] font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded transition-colors">
+                                    Ninguna
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Buscador -->
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </div>
+                            <input type="text" x-model="search" placeholder="Filtrar estaciones..." 
+                                class="w-full rounded-lg border border-slate-200 pl-9 pr-3 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                        </div>
                     </div>
 
                     @if($eds->isEmpty())
                         <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-100 rounded-xl">
-                            <p class="text-sm text-slate-500">No hay estaciones disponibles.</p>
+                            <p class="text-sm text-slate-500">No hay estaciones activas.</p>
                         </div>
                     @else
-                        <!-- 
-                            Pre-cálculo de IDs asignados. 
-                            Usamos old('eds_ids') si falló validación, o sacamos los IDs de la relación.
-                        -->
-                        @php 
-                            $assignedIds = old('eds_ids', $cliente->eds->pluck('id')->toArray()); 
-                        @endphp
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
+                        <!-- Grid de Checkboxes -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide content-start">
                             @foreach($eds as $e)
-                                <label class="cursor-pointer group relative">
-                                    <!-- Checkbox con lógica 'in_array' para marcar los que ya tiene -->
-                                    <input type="checkbox" name="eds_ids[]" value="{{ $e->id }}" 
-                                           class="peer sr-only" 
-                                           {{ in_array($e->id, $assignedIds) ? 'checked' : '' }}>
+                                <label class="cursor-pointer group relative"
+                                       x-show="!search || '{{ strtolower($e->nombre . ' ' . $e->codigo) }}'.includes(search.toLowerCase())"
+                                       x-transition:enter="transition ease-out duration-200"
+                                       x-transition:enter-start="opacity-0 scale-95"
+                                       x-transition:enter-end="opacity-100 scale-100"
+                                >
+                                    <!-- USAMOS X-MODEL PARA LA SINCRONIZACIÓN -->
+                                    <input type="checkbox" name="eds_ids[]" value="{{ $e->id }}" x-model="selected" class="peer sr-only">
                                     
-                                    <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-indigo-300 peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:ring-1 peer-checked:ring-indigo-500 transition-all flex items-start gap-3">
-                                        <!-- Fake Checkbox -->
-                                        <div class="mt-0.5 w-4 h-4 rounded border border-slate-300 bg-white flex items-center justify-center peer-checked:bg-indigo-500 peer-checked:border-indigo-500 transition-colors">
+                                    <div class="p-2.5 rounded-lg border border-slate-200 bg-slate-50/30 hover:bg-white hover:border-indigo-300 peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:ring-1 peer-checked:ring-indigo-500 transition-all flex items-center gap-3">
+                                        <div class="w-4 h-4 rounded border border-slate-300 bg-white flex items-center justify-center peer-checked:bg-indigo-500 peer-checked:border-indigo-500 transition-colors flex-shrink-0">
                                             <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                         </div>
                                         
                                         <div class="flex-1 min-w-0">
                                             <p class="text-xs font-semibold text-slate-700 peer-checked:text-indigo-900 truncate">{{ $e->nombre }}</p>
-                                            <p class="text-[10px] text-slate-500 font-mono mt-0.5">{{ $e->codigo }}</p>
+                                            <p class="text-[10px] text-slate-500 font-mono">{{ $e->codigo }}</p>
                                         </div>
                                     </div>
                                 </label>
                             @endforeach
+                        </div>
+                        
+                        <div x-show="search && filteredStations.length === 0" class="text-center py-4 text-xs text-slate-400" style="display: none;">
+                            No hay estaciones que coincidan con tu búsqueda.
                         </div>
                     @endif
                 </div>
@@ -207,13 +257,3 @@
         </form>
     </div>
 @endsection
-```
-
-### Detalle importante en la lógica de las EDS:
-
-Fíjate en esta parte del código:
-
-```php
-@php 
-    $assignedIds = old('eds_ids', $cliente->eds->pluck('id')->toArray()); 
-@endphp

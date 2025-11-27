@@ -30,9 +30,8 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
                     
-                    <!-- Tipo ID + Documento (Grupo Visual) -->
+                    <!-- Tipo ID + Documento -->
                     <div class="md:col-span-5 flex gap-3">
-                        <!-- Tipo ID -->
                         <div class="w-1/3">
                             <label class="block text-sm font-medium text-slate-700 mb-1.5">Tipo</label>
                             <div class="relative">
@@ -42,14 +41,12 @@
                                     <option value="CE">CE</option>
                                     <option value="PAS">PAS</option>
                                 </select>
-                                <!-- Flecha Custom -->
                                 <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Documento -->
                         <div class="w-2/3">
                             <label class="block text-sm font-medium text-slate-700 mb-1.5">Número <span class="text-red-500">*</span></label>
                             <div class="relative">
@@ -75,11 +72,10 @@
                         @error('razon_social') <p class="mt-1 text-xs text-red-500 font-medium">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Estado (Radio Cards) -->
+                    <!-- Estado -->
                     <div class="md:col-span-12 pt-2">
                         <span class="block text-sm font-medium text-slate-700 mb-3">Estado Operativo</span>
                         <div class="flex gap-4">
-                            <!-- Opción Activo -->
                             <label class="cursor-pointer relative">
                                 <input type="radio" name="estado" value="activo" class="peer sr-only" checked>
                                 <div class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 peer-checked:bg-emerald-50 peer-checked:border-emerald-200 peer-checked:text-emerald-700 transition-all flex items-center gap-2 shadow-sm">
@@ -88,7 +84,6 @@
                                 </div>
                             </label>
 
-                            <!-- Opción Bloqueado -->
                             <label class="cursor-pointer relative">
                                 <input type="radio" name="estado" value="bloqueado" class="peer sr-only">
                                 <div class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 peer-checked:bg-red-50 peer-checked:border-red-200 peer-checked:text-red-700 transition-all flex items-center gap-2 shadow-sm">
@@ -98,15 +93,12 @@
                             </label>
                         </div>
                     </div>
-
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 
-                <!-- ========================================== -->
-                <!-- SECCIÓN 2: CONTACTO Y NOTAS                -->
-                <!-- ========================================== -->
+                <!-- SECCIÓN 2: CONTACTO -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm h-full">
                     <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -140,51 +132,122 @@
                         <!-- Notas -->
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1.5">Notas Internas</label>
-                            <textarea name="notas" rows="3" class="input-pill resize-none" placeholder="Observaciones sobre facturación, horarios, etc..."></textarea>
+                            <textarea name="notas" rows="3" class="input-pill resize-none" placeholder="Observaciones..."></textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- ========================================== -->
-                <!-- SECCIÓN 3: ASIGNACIÓN DE EDS (VISUAL)      -->
+                <!-- SECCIÓN 3: ASIGNACIÓN INTELIGENTE DE EDS   -->
                 <!-- ========================================== -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm h-full flex flex-col">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                            Estaciones Autorizadas
-                        </h3>
-                        <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-md">Selección Múltiple</span>
+                
+                @php
+                    // 1. Preparamos los datos en PHP para Alpine
+                    // old('eds_ids') toma prioridad si hay error de validación
+                    // Si no, iniciamos con un array vacío para create
+                    $preSelected = old('eds_ids', []);
+                    
+                    // Creamos una estructura ligera para JS (solo lo necesario para filtrar)
+                    $edsData = $eds->map(function($e) {
+                        return [
+                            'id' => $e->id,
+                            'search_text' => strtolower($e->nombre . ' ' . $e->codigo)
+                        ];
+                    })->values();
+                @endphp
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm h-full flex flex-col"
+                     x-data="{ 
+                        search: '',
+                        selected: {{ json_encode($preSelected) }}, // Vinculado con x-model
+                        stations: {{ json_encode($edsData) }},     // Fuente de verdad para filtrar
+                        
+                        // Propiedad computada para obtener solo las estaciones visibles
+                        get filteredStations() {
+                            if (!this.search) return this.stations;
+                            return this.stations.filter(s => s.search_text.includes(this.search.toLowerCase()));
+                        },
+
+                        toggleAll(state) {
+                            // Obtenemos los IDs de lo que está visible actualmente
+                            const visibleIds = this.filteredStations.map(s => s.id);
+                            
+                            if (state) {
+                                // MARCAR TODAS: Unimos lo que ya estaba seleccionado + lo visible (sin duplicados)
+                                // Convertimos a Set y de vuelta a Array
+                                this.selected = [...new Set([...this.selected, ...visibleIds])];
+                            } else {
+                                // DESMARCAR NINGUNA: Filtramos selected para quitar los visibles
+                                this.selected = this.selected.filter(id => !visibleIds.includes(id));
+                            }
+                        }
+                     }"
+                >
+                    <!-- Header con Buscador y Acciones -->
+                    <div class="flex flex-col gap-3 mb-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                Estaciones (<span x-text="selected.length"></span>)
+                            </h3>
+                            
+                            <!-- Acciones Masivas -->
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="toggleAll(true)" class="text-[10px] font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors">
+                                    Todas
+                                </button>
+                                <button type="button" @click="toggleAll(false)" class="text-[10px] font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded transition-colors">
+                                    Ninguna
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Buscador Interno de EDS -->
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </div>
+                            <input type="text" x-model="search" placeholder="Filtrar estaciones..." 
+                                class="w-full rounded-lg border border-slate-200 pl-9 pr-3 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all">
+                        </div>
                     </div>
 
                     @if($eds->isEmpty())
                         <div class="flex-1 flex flex-col items-center justify-center text-center p-6 border-2 border-dashed border-slate-100 rounded-xl">
-                            <svg class="w-10 h-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                            <p class="text-sm text-slate-500">No hay estaciones activas disponibles.</p>
-                            <a href="{{ route('eds.create') }}" class="text-xs text-indigo-600 hover:underline mt-1">Crear EDS primero</a>
+                            <p class="text-sm text-slate-500">No hay estaciones activas.</p>
                         </div>
                     @else
-                        <!-- Grid de Checkboxes Visuales -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
+                        <!-- Grid de Checkboxes Filtrable -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide content-start">
                             @foreach($eds as $e)
-                                <label class="cursor-pointer group relative">
-                                    <input type="checkbox" name="eds_ids[]" value="{{ $e->id }}" class="peer sr-only">
+                                <label class="cursor-pointer group relative"
+                                       {{-- Alpine Logic: Usamos búsqueda en datos locales en lugar de DOM --}}
+                                       x-show="!search || '{{ strtolower($e->nombre . ' ' . $e->codigo) }}'.includes(search.toLowerCase())"
+                                       x-transition:enter="transition ease-out duration-200"
+                                       x-transition:enter-start="opacity-0 scale-95"
+                                       x-transition:enter-end="opacity-100 scale-100"
+                                >
+                                    <!-- AQUI ESTA LA CLAVE: x-model conecta el array 'selected' con el checkbox -->
+                                    <input type="checkbox" name="eds_ids[]" value="{{ $e->id }}" x-model="selected" class="peer sr-only">
                                     
-                                    <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-indigo-300 peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:ring-1 peer-checked:ring-indigo-500 transition-all flex items-start gap-3">
-                                        <!-- Fake Checkbox -->
-                                        <div class="mt-0.5 w-4 h-4 rounded border border-slate-300 bg-white flex items-center justify-center peer-checked:bg-indigo-500 peer-checked:border-indigo-500 transition-colors">
+                                    <div class="p-2.5 rounded-lg border border-slate-200 bg-slate-50/30 hover:bg-white hover:border-indigo-300 peer-checked:bg-indigo-50 peer-checked:border-indigo-500 peer-checked:ring-1 peer-checked:ring-indigo-500 transition-all flex items-center gap-3">
+                                        <div class="w-4 h-4 rounded border border-slate-300 bg-white flex items-center justify-center peer-checked:bg-indigo-500 peer-checked:border-indigo-500 transition-colors flex-shrink-0">
                                             <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                         </div>
                                         
                                         <div class="flex-1 min-w-0">
                                             <p class="text-xs font-semibold text-slate-700 peer-checked:text-indigo-900 truncate">{{ $e->nombre }}</p>
-                                            <p class="text-[10px] text-slate-500 font-mono mt-0.5">{{ $e->codigo }}</p>
+                                            <p class="text-[10px] text-slate-500 font-mono">{{ $e->codigo }}</p>
                                         </div>
                                     </div>
                                 </label>
                             @endforeach
                         </div>
-                        <p class="mt-4 text-[11px] text-slate-400">Selecciona las estaciones donde este cliente puede generar facturas o movimientos.</p>
+                        
+                        <!-- Mensaje de sin resultados controlado por Alpine -->
+                        <div x-show="search && filteredStations.length === 0" class="text-center py-4 text-xs text-slate-400" style="display: none;">
+                            No hay estaciones que coincidan con tu búsqueda.
+                        </div>
                     @endif
                 </div>
             </div>

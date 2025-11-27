@@ -10,18 +10,20 @@ class ClienteController extends Controller
 {
     public function index(Request $request) 
     {
-        // 1. Filtros
         $search = $request->string('search')->trim()->toString();
-        $status = $request->input('status', 'activo'); // Por defecto 'activo'
+        $status = $request->input('status', 'activo');
 
-        // 2. Consulta
+        // CONSULTA ULTRA-LIGERA
+        // Solo traemos los campos que la tabla realmente muestra
         $clientes = Cliente::query()
-            ->withCount('eds') // Para mostrar en la tabla cuántas EDS tiene asignadas
-            // Filtro de Estado
+            ->select('id', 'tipo_id', 'documento', 'razon_social', 'email', 'telefono', 'direccion', 'estado')
+            ->withCount('eds') // Cuenta eficiente en SQL, no en PHP
+            
+            // Filtros Condicionales
             ->when($status === 'activo', fn($q) => $q->where('estado', 'activo'))
             ->when($status === 'bloqueado', fn($q) => $q->where('estado', 'bloqueado'))
             
-            // Buscador
+            // Búsqueda Indexada (Asumiendo que tienes índices en DB)
             ->when($search !== '', function ($query) use ($search) {
                 $term = '%' . $search . '%';
                 $query->where(function ($q) use ($term) {
@@ -31,10 +33,9 @@ class ClienteController extends Controller
                 });
             })
             ->latest()
-            ->paginate(15)
+            ->paginate(15) // Paginación pequeña para carga rápida móvil
             ->withQueryString();
 
-        // 3. Respuesta AJAX (Partial)
         if ($request->ajax()) {
             return view('clientes.partials.table', compact('clientes'))->render();
         }
@@ -43,7 +44,12 @@ class ClienteController extends Controller
     }
 
     public function create() {
-        $eds = EDS::where('activo', true)->orderBy('nombre')->get(); // Solo EDS activas
+        // Traemos solo id, nombre y codigo para el selector (menos datos = más velocidad)
+        $eds = EDS::where('activo', true)
+            ->select('id', 'nombre', 'codigo')
+            ->orderBy('nombre')
+            ->get();
+            
         return view('clientes.create', compact('eds'));
     }
 
@@ -64,13 +70,24 @@ class ClienteController extends Controller
         unset($data['eds_ids']);
 
         $cliente = Cliente::create($data);
-        $cliente->eds()->sync($eds_ids);
+        
+        // attach es más rápido que sync si es creación nueva
+        if (!empty($eds_ids)) {
+            $cliente->eds()->attach($eds_ids);
+        }
 
         return redirect()->route('clientes.index')->with('ok', 'Cliente registrado correctamente.');
     }
 
     public function edit(Cliente $cliente) {
-        $eds = EDS::where('activo', true)->orderBy('nombre')->get();
+        // Carga ansiosa para evitar consultas en la vista
+        $cliente->load('eds:id'); 
+        
+        $eds = EDS::where('activo', true)
+            ->select('id', 'nombre', 'codigo')
+            ->orderBy('nombre')
+            ->get();
+            
         return view('clientes.edit', compact('cliente', 'eds'));
     }
 
@@ -97,9 +114,7 @@ class ClienteController extends Controller
     }
 
     public function destroy(Cliente $cliente) {
-        // Borrado Lógico: Cambiar estado a 'bloqueado'
         $cliente->update(['estado' => 'bloqueado']);
-        
-        return back()->with('ok', 'El cliente ha sido bloqueado. Puedes encontrarlo en la pestaña de Bloqueados.');
+        return back()->with('ok', 'Cliente bloqueado exitosamente.');
     }
 }
