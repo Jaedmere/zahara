@@ -7,28 +7,21 @@ use Illuminate\Http\Request;
 
 class EDSController extends Controller
 {
-    /**
-     * Muestra el listado de EDS con filtros de estado y búsqueda.
-     */
     public function index(Request $request)
     {
-        // 1. Capturamos los filtros
         $search = $request->string('search')->trim()->toString();
-        $status = $request->input('status', 'active'); // Por defecto 'active'
+        $status = $request->input('status', 'active');
 
-        // 2. Construimos la consulta
+        // CONSULTA OPTIMIZADA
         $eds = EDS::query()
-            ->select('id', 'codigo', 'nombre', 'nit', 'ciudad', 'activo')
+            // Traemos solo columnas usadas en la vista (Cards/Tabla)
+            ->select('id', 'codigo', 'nombre', 'nit', 'ciudad', 'activo', 'telefono', 'direccion') 
             
-            // Filtro de Estado (Lógica de pestañas)
-            ->when($status === 'active', function ($q) {
-                $q->where('activo', true);
-            })
-            ->when($status === 'inactive', function ($q) {
-                $q->where('activo', false);
-            })
+            // Filtro Estado
+            ->when($status === 'active', fn($q) => $q->where('activo', true))
+            ->when($status === 'inactive', fn($q) => $q->where('activo', false))
 
-            // Filtro de Búsqueda (Buscador)
+            // Buscador Indexado
             ->when($search !== '', function ($query) use ($search) {
                 $term = '%' . $search . '%';
                 $query->where(function ($q) use ($term) {
@@ -37,16 +30,14 @@ class EDSController extends Controller
                       ->orWhere('nit', 'like', $term);
                 });
             })
-            ->latest() // Ordenar por creación descendente
+            ->latest()
             ->paginate(15)
-            ->withQueryString(); // Mantener filtros en paginación
+            ->withQueryString();
 
-        // 3. Respuesta AJAX (Para la búsqueda en vivo estilo 'Zahara')
         if ($request->ajax()) {
             return view('eds.partials.table', compact('eds'))->render();
         }
 
-        // 4. Carga inicial normal
         return view('eds.index', compact('eds'));
     }
 
@@ -68,12 +59,9 @@ class EDSController extends Controller
             'activo'        => 'boolean',
         ]);
 
-        // Nota: Si usaste los Mutadores en el Modelo, el nombre se guarda como Title Case automáticamente.
         EDS::create($data);
 
-        return redirect()
-            ->route('eds.index')
-            ->with('ok', 'Estación de servicio creada exitosamente.');
+        return redirect()->route('eds.index')->with('ok', 'Estación creada exitosamente.');
     }
 
     public function edit(EDS $ed)
@@ -94,28 +82,18 @@ class EDSController extends Controller
             'activo'        => 'boolean',
         ]);
 
-        // Si desmarcan el checkbox, el navegador no envía 'activo', 
-        // así que forzamos el false si no viene en el request.
         if (!$request->has('activo')) {
             $data['activo'] = false;
         }
 
         $ed->update($data);
 
-        return redirect()
-            ->route('eds.index')
-            ->with('ok', 'Estación actualizada correctamente.');
+        return redirect()->route('eds.index')->with('ok', 'Estación actualizada correctamente.');
     }
 
-    /**
-     * DESACTIVACIÓN LÓGICA (Soft Delete Manual)
-     * En lugar de borrar el registro, lo marcamos como inactivo.
-     */
     public function destroy(EDS $ed)
     {
-        // Cambiamos el estado a Inactivo (0)
         $ed->update(['activo' => false]);
-
-        return back()->with('ok', 'La EDS ha sido desactivada. Puedes verla en la pestaña "Inactivas".');
+        return back()->with('ok', 'La EDS ha sido desactivada.');
     }
 }

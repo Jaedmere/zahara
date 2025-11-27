@@ -2,7 +2,7 @@
 
 @section('title', 'Crear EDS - Zahara')
 @section('page_title', 'Nueva Estación')
-@section('page_subtitle', 'Registra una nueva estación de servicio en el sistema.')
+@section('page_subtitle', 'Registra una nueva estación de servicio.')
 
 @section('breadcrumb')
     <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 transition-colors">Inicio</a>
@@ -18,7 +18,7 @@
         <form action="{{ route('eds.store') }}" method="POST" class="space-y-8">
             @csrf
 
-            <!-- SECCIÓN 1: IDENTIDAD -->
+            <!-- IDENTIDAD -->
             <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm relative overflow-hidden group hover:border-indigo-500/30 transition-colors">
                 
                 <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6 flex items-center gap-2">
@@ -27,15 +27,13 @@
                 </h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
-                    <!-- Código (CORREGIDO) -->
+                    <!-- Código -->
                     <div class="md:col-span-4">
                         <label for="codigo" class="block text-sm font-medium text-slate-700 mb-1.5">Código EDS <span class="text-red-500">*</span></label>
                         <div class="relative">
-                            {{-- Icono posicionado absolutamente a la izquierda --}}
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
                             </div>
-                            {{-- Input con !pl-11 para forzar el espacio del icono --}}
                             <input type="text" name="codigo" id="codigo" value="{{ old('codigo') }}" 
                                 class="input-pill !pl-11 uppercase font-mono tracking-wide focus:border-indigo-500 @error('codigo') border-red-500 text-red-600 @enderror" 
                                 placeholder="EJE: 101" required autofocus>
@@ -56,8 +54,7 @@
                     <div class="md:col-span-6">
                         <label for="nit" class="block text-sm font-medium text-slate-700 mb-1.5">NIT / Identificación</label>
                         <input type="text" name="nit" id="nit" value="{{ old('nit') }}" 
-                            class="input-pill" 
-                            placeholder="900.000.000">
+                            class="input-pill" placeholder="900.000.000">
                     </div>
 
                     <!-- Toggle Activo -->
@@ -66,7 +63,6 @@
                             <input type="hidden" name="activo" value="0">
                             <input type="checkbox" name="activo" value="1" class="sr-only peer" {{ old('activo', 1) ? 'checked' : '' }}>
                             
-                            <!-- Track del switch -->
                             <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                             
                             <div class="ml-3 flex flex-col select-none">
@@ -78,7 +74,7 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN 2: UBICACIÓN Y CONTACTO -->
+            <!-- UBICACIÓN -->
             <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
                 <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -86,21 +82,18 @@
                 </h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Ciudad -->
                     <div>
                         <label for="ciudad" class="block text-sm font-medium text-slate-700 mb-1.5">Ciudad</label>
                         <input type="text" name="ciudad" id="ciudad" value="{{ old('ciudad') }}" 
                             class="input-pill" placeholder="Ej. Bogotá D.C.">
                     </div>
 
-                    <!-- Teléfono -->
                     <div>
                         <label for="telefono" class="block text-sm font-medium text-slate-700 mb-1.5">Teléfono</label>
                         <input type="text" name="telefono" id="telefono" value="{{ old('telefono') }}" 
                             class="input-pill" placeholder="(300 000 0000)">
                     </div>
 
-                    <!-- Dirección (CORREGIDO) -->
                     <div class="md:col-span-2">
                         <label for="direccion" class="block text-sm font-medium text-slate-700 mb-1.5">Dirección Física</label>
                         <div class="relative">
@@ -112,7 +105,6 @@
                         </div>
                     </div>
 
-                    <!-- Email Alertas (CORREGIDO) -->
                     <div class="md:col-span-2">
                         <label for="email_alertas" class="block text-sm font-medium text-slate-700 mb-1.5">Email para Notificaciones</label>
                         <div class="relative">
@@ -123,7 +115,6 @@
                                 class="input-pill !pl-11 @error('email_alertas') border-red-500 @enderror" 
                                 placeholder="administracion@estacion.com">
                         </div>
-                        <p class="mt-1 text-xs text-slate-500">Se enviarán reportes automáticos a esta dirección.</p>
                         @error('email_alertas') <p class="mt-1 text-xs text-red-500 font-medium">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -131,12 +122,8 @@
 
             <!-- ACTION BAR -->
             <div class="flex items-center justify-end gap-4 pt-4 border-t border-slate-200">
-                <a href="{{ route('eds.index') }}" class="btn-secondary">
-                    Cancelar
-                </a>
-                <button type="submit" class="btn-primary min-w-[120px]">
-                    Guardar EDS
-                </button>
+                <a href="{{ route('eds.index') }}" class="btn-secondary">Cancelar</a>
+                <button type="submit" class="btn-primary min-w-[120px]">Guardar EDS</button>
             </div>
         </form>
     </div>

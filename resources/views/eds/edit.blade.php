@@ -19,7 +19,7 @@
             @csrf
             @method('PUT')
 
-            <!-- SECCIÓN 1: IDENTIDAD -->
+            <!-- IDENTIDAD -->
             <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm relative overflow-hidden group hover:border-indigo-500/30 transition-colors">
                 
                 <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6 flex items-center gap-2">
@@ -62,7 +62,6 @@
                     <div class="md:col-span-6 flex items-end pb-1">
                         <label class="relative inline-flex items-center cursor-pointer group">
                             <input type="hidden" name="activo" value="0">
-                            {{-- Notar el uso de old() con el valor del modelo como fallback --}}
                             <input type="checkbox" name="activo" value="1" class="sr-only peer" {{ old('activo', $ed->activo) ? 'checked' : '' }}>
                             
                             <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
@@ -76,7 +75,7 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN 2: UBICACIÓN Y CONTACTO -->
+            <!-- UBICACIÓN -->
             <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
                 <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6 flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -84,21 +83,18 @@
                 </h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Ciudad -->
                     <div>
                         <label for="ciudad" class="block text-sm font-medium text-slate-700 mb-1.5">Ciudad</label>
                         <input type="text" name="ciudad" id="ciudad" value="{{ old('ciudad', $ed->ciudad) }}" 
                             class="input-pill">
                     </div>
 
-                    <!-- Teléfono -->
                     <div>
                         <label for="telefono" class="block text-sm font-medium text-slate-700 mb-1.5">Teléfono</label>
                         <input type="text" name="telefono" id="telefono" value="{{ old('telefono', $ed->telefono) }}" 
                             class="input-pill">
                     </div>
 
-                    <!-- Dirección -->
                     <div class="md:col-span-2">
                         <label for="direccion" class="block text-sm font-medium text-slate-700 mb-1.5">Dirección Física</label>
                         <div class="relative">
@@ -110,7 +106,6 @@
                         </div>
                     </div>
 
-                    <!-- Email Alertas -->
                     <div class="md:col-span-2">
                         <label for="email_alertas" class="block text-sm font-medium text-slate-700 mb-1.5">Email para Notificaciones</label>
                         <div class="relative">
@@ -127,12 +122,8 @@
 
             <!-- ACTION BAR -->
             <div class="flex items-center justify-end gap-4 pt-4 border-t border-slate-200">
-                <a href="{{ route('eds.index') }}" class="btn-secondary">
-                    Cancelar
-                </a>
-                <button type="submit" class="btn-primary min-w-[140px]">
-                    Guardar Cambios
-                </button>
+                <a href="{{ route('eds.index') }}" class="btn-secondary">Cancelar</a>
+                <button type="submit" class="btn-primary min-w-[120px]">Guardar Cambios</button>
             </div>
         </form>
     </div>
