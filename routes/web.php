@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\{
     EDSController, ClienteController, FacturaController, AbonoController,
-    InformeController, AuditoriaController
+    InformeController, AuditoriaController, UserController // <--- Agregamos UserController aquí
 };
 
 // --- Auth (público) ---
@@ -23,13 +23,21 @@ Route::post('/logout', [LoginController::class, 'logout'])
 
 // --- App (protegido) ---
 Route::middleware('auth')->group(function () {
+    // Dashboard (Mantenemos tu ruta actual)
     Route::view('/', 'dashboard')->name('dashboard');
 
+    // Módulos Principales
     Route::resource('eds', EDSController::class);
     Route::resource('clientes', ClienteController::class);
+    
+    // NUEVO: Gestión de Usuarios
+    Route::resource('users', UserController::class);
+
+    // Módulos de Facturación y Cartera (Existentes)
     Route::resource('facturas', FacturaController::class);
     Route::resource('abonos', AbonoController::class)->only(['index','create','store','destroy']);
 
+    // Reportes y Auditoría (Existentes)
     Route::get('informes/aging', [InformeController::class, 'aging'])->name('informes.aging');
     Route::get('auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
 });

@@ -1,25 +1,27 @@
 @extends('layouts.app')
 
-@section('title', 'EDS - Zahara')
-@section('page_title', 'Estaciones de Servicio')
+@section('title', 'Usuarios - Zahara')
+@section('page_title', 'Gestión de Usuarios')
 
 @section('breadcrumb')
-    <span>Inicio</span> / <span class="text-slate-900 font-medium">EDS</span>
+    <span>Inicio</span> / <span class="text-slate-900 font-medium">Usuarios</span>
 @endsection
 
 @section('page_actions')
-    <a href="{{ route('eds.create') }}" class="btn-primary px-4 py-2.5 text-sm inline-flex items-center justify-center gap-2 shadow-sm w-full md:w-auto transition-transform active:scale-95">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-        <span>Nueva EDS</span>
+    <a href="{{ route('users.create') }}" class="btn-primary px-4 py-2.5 text-sm inline-flex items-center justify-center gap-2 shadow-sm w-full md:w-auto transition-transform active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span>Nuevo Usuario</span>
     </a>
 @endsection
 
 @section('content')
-{{-- Quitamos paréntesis en x-data para usar el componente registrado --}}
-<div x-data="searchHandler" class="flex flex-col gap-4 md:gap-6 pb-20 md:pb-0">
+<div x-data="searchHandler()" class="flex flex-col gap-4 md:gap-6 pb-20 md:pb-0">
 
+    <!-- TOOLBAR STICKY -->
     <div class="sticky top-0 z-20 bg-[#F8FAFC]/95 backdrop-blur py-2 md:static md:bg-transparent md:py-0 transition-all">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            
+            <!-- Buscador -->
             <div class="relative w-full md:max-w-md group shadow-sm md:shadow-none rounded-xl">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 transition-colors group-focus-within:text-indigo-500">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -28,7 +30,7 @@
                     type="text" 
                     x-model="search"
                     @input.debounce.300ms="performSearch"
-                    placeholder="Buscar estación..." 
+                    placeholder="Buscar por nombre o email..." 
                     class="input-pill !pl-12 pr-10 bg-white h-12 md:h-10 text-base md:text-sm shadow-sm md:shadow-none border-slate-200 focus:border-indigo-500"
                 >
                 <div x-show="isLoading" class="absolute inset-y-0 right-0 pr-4 flex items-center" style="display: none;">
@@ -36,27 +38,34 @@
                 </div>
             </div>
 
+            <!-- Tabs Filtro -->
             <div class="flex p-1 bg-slate-200/60 rounded-xl self-start overflow-x-auto max-w-full no-scrollbar">
-                @php $status = request('status', 'active'); @endphp
-                <a href="{{ route('eds.index', ['status' => 'active']) }}" 
-                   class="whitespace-nowrap px-4 py-2 md:py-1.5 rounded-lg text-xs font-semibold transition-all {{ $status === 'active' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">Activas</a>
-                <a href="{{ route('eds.index', ['status' => 'inactive']) }}" 
-                   class="whitespace-nowrap px-4 py-2 md:py-1.5 rounded-lg text-xs font-semibold transition-all {{ $status === 'inactive' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">Inactivas</a>
+                @php $status = request('status', 'activo'); @endphp
+                
+                <a href="{{ route('users.index', ['status' => 'activo']) }}" 
+                   class="whitespace-nowrap px-4 py-2 md:py-1.5 rounded-lg text-xs font-semibold transition-all {{ $status === 'activo' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+                    Activos
+                </a>
+                <a href="{{ route('users.index', ['status' => 'inactivo']) }}" 
+                   class="whitespace-nowrap px-4 py-2 md:py-1.5 rounded-lg text-xs font-semibold transition-all {{ $status === 'inactivo' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+                    Inactivos
+                </a>
             </div>
         </div>
     </div>
 
+    <!-- Contenedor Resultados -->
     <div class="bg-white/60 backdrop-blur-xl rounded-2xl border border-soft shadow-sm overflow-hidden relative min-h-[300px]">
         <div x-show="isLoading" class="absolute inset-0 bg-white/40 z-10 backdrop-blur-[1px]" style="display: none;"></div>
         <div id="results-container">
-            @include('eds.partials.table', ['eds' => $eds])
+            @include('users.partials.table', ['users' => $users])
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('searchHandler', () => ({
+    function searchHandler() {
+        return {
             search: @js(request('search')),
             isLoading: false,
             controller: null,
@@ -70,11 +79,10 @@
                 params.delete('page');
                 const url = `${window.location.pathname}?${params.toString()}`;
                 fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }, signal: this.controller.signal })
-                .then(r => r.text())
-                .then(html => { document.getElementById('results-container').innerHTML = html; window.history.pushState({}, '', url); })
+                .then(r => r.text()).then(html => { document.getElementById('results-container').innerHTML = html; window.history.pushState({}, '', url); })
                 .finally(() => { self.isLoading = false; });
             }
-        }))
-    })
+        }
+    }
 </script>
 @endsection
