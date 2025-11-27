@@ -6,6 +6,8 @@ use App\Models\Factura;
 use App\Models\Cliente;
 use App\Models\EDS;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FacturaController extends Controller
 {
@@ -42,7 +44,7 @@ class FacturaController extends Controller
             })
             ->orderBy('fecha_vencimiento', 'asc')
             ->paginate(15)
-            ->withQueryString(); 
+            ->withQueryString();
 
         if ($request->ajax()) {
             return view('facturas.partials.table', compact('facturas'))->render();
@@ -60,13 +62,21 @@ class FacturaController extends Controller
 
     public function store(Request $request)
     {
-         $data = $request->validate([
+        $data = $request->validate([
             'eds_id'            => 'required|exists:eds,id',
             'cliente_id'        => 'required|exists:clientes,id',
             'prefijo'           => 'nullable|string|max:10',
-            'consecutivo'       => 'required|string|max:20',
+            'consecutivo'       => [
+                'required', 'string', 'max:20',
+                Rule::unique('facturas')->where(fn ($q) => $q->where('eds_id', $request->eds_id)->where('prefijo', $request->prefijo))
+            ],
             'fecha_emision'     => 'required|date',
             'fecha_vencimiento' => 'required|date|after_or_equal:fecha_emision',
+            
+            // --- NUEVOS CAMPOS: CORTE ---
+            'corte_desde'       => 'required|date',
+            'corte_hasta'       => 'required|date|after_or_equal:corte_desde',
+
             'valor_neto'        => 'required|numeric|min:0',
             'descuento'         => 'nullable|numeric|min:0',
             'notas'             => 'nullable|string'
@@ -82,6 +92,8 @@ class FacturaController extends Controller
             'consecutivo'       => $data['consecutivo'],
             'fecha_emision'     => $data['fecha_emision'],
             'fecha_vencimiento' => $data['fecha_vencimiento'],
+            'corte_desde'       => $data['corte_desde'],
+            'corte_hasta'       => $data['corte_hasta'],
             'valor_neto'        => $data['valor_neto'],
             'descuento'         => $descuento,
             'valor_total'       => $total,
@@ -90,7 +102,7 @@ class FacturaController extends Controller
             'notas'             => $data['notas']
         ]);
 
-        return redirect()->route('facturas.index')->with('ok', 'Factura registrada correctamente.');
+        return redirect()->route('facturas.index')->with('ok', 'Cuenta registrada correctamente.');
     }
 
     public function show(Factura $factura)
@@ -101,12 +113,10 @@ class FacturaController extends Controller
     public function edit(Factura $factura)
     {
          if ($factura->estado === 'anulada') {
-            return back()->withErrors(['msg' => 'No se puede editar una factura anulada.']);
+            return back()->withErrors(['msg' => 'No se puede editar una cuenta anulada.']);
         }
-
         $clientes = Cliente::where('estado', 'activo')->select('id', 'razon_social')->orderBy('razon_social')->get();
         $eds = EDS::where('activo', true)->select('id', 'nombre')->orderBy('nombre')->get();
-
         return view('facturas.edit', compact('factura', 'clientes', 'eds'));
     }
 
@@ -117,6 +127,8 @@ class FacturaController extends Controller
         $rules = [
             'fecha_emision'     => 'required|date',
             'fecha_vencimiento' => 'required|date|after_or_equal:fecha_emision',
+            'corte_desde'       => 'required|date',
+            'corte_hasta'       => 'required|date|after_or_equal:corte_desde',
             'notas'             => 'nullable|string'
         ];
 
@@ -124,7 +136,7 @@ class FacturaController extends Controller
             $rules['eds_id']      = 'required|exists:eds,id';
             $rules['cliente_id']  = 'required|exists:clientes,id';
             $rules['prefijo']     = 'nullable|string|max:10';
-            $rules['consecutivo'] = 'required|string|max:20';
+            $rules['consecutivo'] = ['required', 'string', 'max:20', Rule::unique('facturas')->ignore($factura->id)->where(fn ($q) => $q->where('eds_id', $request->input('eds_id', $factura->eds_id))->where('prefijo', $request->input('prefijo', $factura->prefijo)))];
             $rules['valor_neto']  = 'required|numeric|min:0';
             $rules['descuento']   = 'nullable|numeric|min:0';
         }
@@ -135,13 +147,13 @@ class FacturaController extends Controller
             $factura->update([
                 'fecha_emision'     => $data['fecha_emision'],
                 'fecha_vencimiento' => $data['fecha_vencimiento'],
+                'corte_desde'       => $data['corte_desde'],
+                'corte_hasta'       => $data['corte_hasta'],
                 'notas'             => $data['notas']
             ]);
-            $msg = 'Factura actualizada (Montos protegidos por abonos existentes).';
+            $msg = 'Cuenta actualizada (Montos protegidos).';
         } else {
-            $descuento = $data['descuento'] ?? 0;
-            $total = $data['valor_neto'] - $descuento;
-
+            $total = $data['valor_neto'] - ($data['descuento'] ?? 0);
             $factura->update([
                 'eds_id'            => $data['eds_id'],
                 'cliente_id'        => $data['cliente_id'],
@@ -149,13 +161,15 @@ class FacturaController extends Controller
                 'consecutivo'       => $data['consecutivo'],
                 'fecha_emision'     => $data['fecha_emision'],
                 'fecha_vencimiento' => $data['fecha_vencimiento'],
+                'corte_desde'       => $data['corte_desde'],
+                'corte_hasta'       => $data['corte_hasta'],
                 'valor_neto'        => $data['valor_neto'],
-                'descuento'         => $descuento,
+                'descuento'         => $data['descuento'] ?? 0,
                 'valor_total'       => $total,
                 'saldo_pendiente'   => $total,
                 'notas'             => $data['notas']
             ]);
-            $msg = 'Factura actualizada correctamente.';
+            $msg = 'Cuenta actualizada correctamente.';
         }
 
         return redirect()->route('facturas.index')->with('ok', $msg);
@@ -164,44 +178,32 @@ class FacturaController extends Controller
     public function destroy(Factura $factura)
     {
          if ($factura->valor_total != $factura->saldo_pendiente) {
-            return back()->withErrors(['msg' => 'No se puede anular una factura con abonos. Anule los abonos primero.']);
+            return back()->withErrors(['msg' => 'No se puede anular una cuenta con abonos. Anule los abonos primero.']);
         }
-
         $factura->update(['estado' => 'anulada', 'saldo_pendiente' => 0]);
         $factura->delete(); 
-
-        return back()->with('ok', 'Factura anulada.');
+        return back()->with('ok', 'Cuenta anulada.');
     }
 
-    // --- MÉTODO EXPORTAR CSV BLINDADO ---
     public function export(Request $request)
     {
         set_time_limit(300);
         ini_set('memory_limit', '512M');
 
-        // LIMPIEZA DE INPUTS: Evitar que "null" o "undefined" rompan la consulta
         $search = $request->string('search')->trim()->toString();
         $search = ($search === 'null' || $search === 'undefined') ? '' : $search;
-
         $estado = $request->input('estado');
         $estado = ($estado === 'null' || $estado === 'undefined' || !$estado) ? 'pendientes' : $estado;
-
         $eds_id = $request->input('eds_id');
         $eds_id = ($eds_id === 'null' || $eds_id === 'undefined') ? null : $eds_id;
-
         $fecha_desde = $request->input('fecha_desde');
         $fecha_desde = ($fecha_desde === 'null' || $fecha_desde === 'undefined') ? null : $fecha_desde;
-
         $fecha_hasta = $request->input('fecha_hasta');
         $fecha_hasta = ($fecha_hasta === 'null' || $fecha_hasta === 'undefined') ? null : $fecha_hasta;
 
-        // Construcción del Query (Idéntico al Index)
-        $query = Factura::query()
-            ->with(['cliente:id,razon_social,documento', 'eds:id,nombre']); 
+        $query = Factura::query()->with(['cliente:id,razon_social,documento', 'eds:id,nombre']); 
 
-        if ($estado === 'anuladas' || $estado === 'todas') {
-            $query->withTrashed();
-        }
+        if ($estado === 'anuladas' || $estado === 'todas') { $query->withTrashed(); }
 
         $query->when($estado === 'pendientes', fn($q) => $q->pendientes())
               ->when($estado === 'pagadas', fn($q) => $q->where('estado', 'pagada'))
@@ -217,22 +219,14 @@ class FacturaController extends Controller
               })
               ->orderBy('fecha_emision', 'desc');
 
-        $fileName  = 'reporte_facturas_' . date('Y-m-d_H-i') . '.csv';
+        $fileName  = 'reporte_cuentas_' . date('Y-m-d_H-i') . '.csv';
         $delimiter = ';';
 
         return response()->streamDownload(function() use ($query, $delimiter) {
-            // Limpiar cualquier salida previa (espacios, errores, etc)
             if (ob_get_level()) ob_end_clean();
-            
             $out = fopen('php://output', 'w');
-            
-            // BOM UTF-8
             fwrite($out, "\xEF\xBB\xBF");
-
-            fputcsv($out, [
-                'Consecutivo', 'Prefijo', 'Cliente', 'NIT/CC', 'EDS', 
-                'Fecha Emisión', 'Vencimiento', 'Total', 'Saldo Pendiente', 'Estado'
-            ], $delimiter);
+            fputcsv($out, ['Consecutivo', 'Prefijo', 'Cliente', 'NIT/CC', 'EDS', 'Fecha Emisión', 'Corte Desde', 'Corte Hasta', 'Vencimiento', 'Total', 'Saldo Pendiente', 'Estado'], $delimiter);
 
             $query->chunk(500, function($facturas) use ($out, $delimiter) {
                 foreach ($facturas as $f) {
@@ -243,6 +237,8 @@ class FacturaController extends Controller
                         $f->cliente->documento,
                         $f->eds->nombre,
                         $f->fecha_emision->format('Y-m-d'),
+                        $f->corte_desde->format('Y-m-d'), // NUEVO EXPORT
+                        $f->corte_hasta->format('Y-m-d'), // NUEVO EXPORT
                         $f->fecha_vencimiento->format('Y-m-d'),
                         number_format($f->valor_total, 2, ',', ''),
                         number_format($f->saldo_pendiente, 2, ',', ''),
@@ -251,12 +247,7 @@ class FacturaController extends Controller
                 }
                 flush(); 
             });
-
             fclose($out);
-        }, $fileName, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Cache-Control' => 'no-store, no-cache',
-            'X-Accel-Buffering' => 'no',
-        ]);
+        }, $fileName, ['Content-Type' => 'text/csv; charset=UTF-8', 'Cache-Control' => 'no-store, no-cache', 'X-Accel-Buffering' => 'no']);
     }
 }

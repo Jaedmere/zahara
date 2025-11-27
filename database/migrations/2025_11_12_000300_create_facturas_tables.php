@@ -11,38 +11,38 @@ return new class extends Migration {
             
             // Identificación
             $table->string('prefijo', 10)->nullable();
-            $table->string('consecutivo', 20); // String por si es alfanumérico
+            $table->string('consecutivo', 20);
             
             // Relaciones
             $table->foreignId('cliente_id')->constrained('clientes')->restrictOnDelete();
             $table->foreignId('eds_id')->constrained('eds')->restrictOnDelete();
             
-            // Fechas
+            // Fechas de Documento
             $table->date('fecha_emision');
             $table->date('fecha_vencimiento');
+
+            // --- NUEVO: PERIODO DE CORTE ---
+            $table->date('corte_desde')->comment('Inicio del periodo facturado');
+            $table->date('corte_hasta')->comment('Fin del periodo facturado');
             
-            // Valores Económicos (Simplificados para Cartera)
-            $table->decimal('valor_neto', 18, 2)->comment('Valor antes de descuentos');
+            // Valores
+            $table->decimal('valor_neto', 18, 2);
             $table->decimal('descuento', 18, 2)->default(0);
-            $table->decimal('valor_total', 18, 2)->comment('Neto - Descuento. Valor real de la deuda');
-            
-            // Control de Saldo (Vital para rendimiento)
-            $table->decimal('saldo_pendiente', 18, 2)->comment('Disminuye con cada abono');
+            $table->decimal('valor_total', 18, 2);
+            $table->decimal('saldo_pendiente', 18, 2);
             
             $table->enum('estado', ['pendiente', 'parcial', 'pagada', 'vencida', 'anulada'])->default('pendiente');
             $table->text('notas')->nullable();
             
-            $table->softDeletes(); // Inactivar en lugar de borrar
+            $table->softDeletes();
             $table->timestamps();
 
-            // Índices para reportes rápidos
-            $table->unique(['prefijo', 'consecutivo', 'eds_id'], 'factura_unica_por_eds'); // Evitar duplicados
-            $table->index(['cliente_id', 'estado']); // Para "Ver deuda del cliente X"
-            $table->index('fecha_vencimiento'); // Para "Ver qué se vence mañana"
-            $table->index('saldo_pendiente'); // Para "Ver facturas con deuda"
+            // Índices
+            $table->unique(['eds_id', 'prefijo', 'consecutivo'], 'unique_factura_eds');
+            $table->index(['cliente_id', 'estado']);
+            $table->index('corte_desde'); // Útil para reportes cronológicos
         });
 
-        // Adjuntos (Evidencia física de la factura)
         Schema::create('factura_adjuntos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('factura_id')->constrained('facturas')->cascadeOnDelete();
