@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\{
     EDSController, ClienteController, FacturaController, AbonoController,
-    InformeController, AuditoriaController, UserController // <--- Agregamos UserController aquí
+    InformeController, AuditoriaController, UserController, RoleController // <--- Agregamos RoleController
 };
 
 // --- Auth (público) ---
@@ -23,24 +23,24 @@ Route::post('/logout', [LoginController::class, 'logout'])
 
 // --- App (protegido) ---
 Route::middleware('auth')->group(function () {
-    // Dashboard (Mantenemos tu ruta actual)
+    
     Route::view('/', 'dashboard')->name('dashboard');
 
-    // Módulos Principales
+    // Módulos Operativos
     Route::resource('eds', EDSController::class);
     Route::resource('clientes', ClienteController::class);
     
-    // NUEVO: Gestión de Usuarios
+    // Módulos Administrativos
     Route::resource('users', UserController::class);
+    Route::resource('roles', RoleController::class); // <--- NUEVA RUTA DE ROLES
 
-    // Módulos de Facturación y Cartera (Existentes)
+    // Facturación y Cartera
     Route::resource('facturas', FacturaController::class);
     Route::resource('abonos', AbonoController::class)->only(['index','create','store','destroy']);
 
-    // Reportes y Auditoría (Existentes)
+    // Reportes
     Route::get('informes/aging', [InformeController::class, 'aging'])->name('informes.aging');
     Route::get('auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
 });
 
-// Opcional: captura 404 “bonita”
 Route::fallback(fn () => response()->view('errors.404', [], 404));
