@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Zahara Tech')</title>
 
-    {{-- Favicon SVG Anti-Caché --}}
+    {{-- Favicon --}}
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=3">
     <link rel="shortcut icon" href="{{ asset('favicon.svg') }}?v=3">
     <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}?v=3">
@@ -30,31 +30,37 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        /* Ocultar scrollbar visualmente pero permitir scroll */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-[#F8FAFC] font-sans text-slate-600 antialiased" x-data="{ sidebarOpen: false }">
+{{-- IMPORTANTE: Quitamos overflow-hidden del body para permitir scroll natural en móviles --}}
+<body class="bg-[#F8FAFC] font-sans text-slate-600 antialiased min-h-screen flex flex-col md:flex-row" x-data="{ sidebarOpen: false }">
 
+    <!-- OVERLAY MÓVIL -->
     <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition.opacity 
          class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden" style="display: none;"></div>
 
-    <aside class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 shadow-2xl md:shadow-none transform transition-transform duration-300 md:translate-x-0"
+    <!-- SIDEBAR FIXED (FLEXBOX COLUMN) -->
+    <aside class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 shadow-2xl md:shadow-none transform transition-transform duration-300 md:translate-x-0 flex flex-col h-full"
            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
         
-        <div class="h-20 flex items-center px-8 border-b border-slate-50">
+        <!-- 1. Logo (Fijo arriba) -->
+        <div class="h-20 flex-none flex items-center px-8 border-b border-slate-50">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200">
                     Z
                 </div>
                 <div>
                     <h1 class="font-bold text-slate-900 text-lg leading-tight">Zahara</h1>
-                    <p class="text-[10px] font-bold text-indigo-500 tracking-widest uppercase">Combured</p>
+                    <p class="text-[10px] font-bold text-indigo-500 tracking-widest uppercase">Technology</p>
                 </div>
             </div>
         </div>
 
-        <nav class="p-4 space-y-1 overflow-y-auto h-[calc(100vh-5rem)]">
+        <!-- 2. Navegación (Flexible con Scroll propio) -->
+        <nav class="flex-1 overflow-y-auto p-4 space-y-1 no-scrollbar">
             @php
                 $navItem = function($route, $label, $icon) {
                     $active = request()->routeIs($route.'*');
@@ -67,12 +73,14 @@
                             </a>';
                 };
                 
+                // Iconos
                 $iHome = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>';
                 $iEds = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>';
                 $iClients = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>';
                 $iUsers = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>';
                 $iRoles = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>';
                 $iAbonos = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a1 1 0 11-2 0 1 1 0 012 0z"/></svg>';
+                $iCartera = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>';
             @endphp
 
             <div class="px-3 mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Operación</div>
@@ -81,7 +89,37 @@
             {!! $navItem('eds.index', 'Estaciones EDS', $iEds) !!}
             {!! $navItem('clientes.index', 'Clientes', $iClients) !!}
             
-            {{-- CAMBIO DE NOMBRE A 'CUENTAS' --}}
+            <!-- ACORDEÓN: ESTADO DE CARTERA -->
+            <div x-data="{ open: {{ request()->routeIs('cartera.*') ? 'true' : 'false' }} }" class="space-y-1">
+                <button @click="open = !open" 
+                        class="flex items-center justify-between w-full gap-3 px-4 py-3 rounded-xl font-medium transition-all group cursor-pointer select-none"
+                        :class="open || {{ request()->routeIs('cartera.*') ? 'true' : 'false' }} ? 'bg-slate-50 text-slate-900' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'">
+                    <div class="flex items-center gap-3">
+                        <span :class="open || {{ request()->routeIs('cartera.*') ? 'true' : 'false' }} ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'">
+                            {!! $iCartera !!}
+                        </span>
+                        <span>Estado de Cartera</span>
+                    </div>
+                    <!-- Flechita animada -->
+                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" 
+                         :class="open ? 'rotate-180' : ''" 
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <!-- Submenú -->
+                <div x-show="open" x-collapse x-cloak class="pl-11 pr-2 space-y-1">
+                    <a href="{{ route('cartera.index') }}" 
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors {{ request()->routeIs('cartera.index') ? 'text-indigo-700 font-medium bg-indigo-50' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' }}">
+                        <!-- ICONO: Documento/Gráfico -->
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        Consolidado Combured
+                    </a>
+                    {{-- Aquí puedes agregar más reportes de cartera en el futuro --}}
+                </div>
+            </div>
+
             {!! $navItem('facturas.index', 'Cuentas', '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>') !!}
             
             {!! $navItem('abonos.index', 'Abonos / Recibos', $iAbonos) !!}
@@ -89,10 +127,10 @@
             <div class="mt-8 px-3 mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Administración</div>
             {!! $navItem('users.index', 'Usuarios', $iUsers) !!}
             {!! $navItem('roles.index', 'Roles y Permisos', $iRoles) !!}
-            
         </nav>
         
-        <div class="absolute bottom-0 w-full border-t border-slate-100 p-4 bg-white">
+        <!-- 3. Footer Usuario (Fijo abajo) -->
+        <div class="flex-none border-t border-slate-100 p-4 bg-white">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold">
                     {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
@@ -111,9 +149,11 @@
         </div>
     </aside>
 
-    <main class="md:pl-72 min-h-screen flex flex-col transition-all duration-300">
+    <!-- MAIN CONTENT -->
+    <main class="md:ml-72 flex-1 flex flex-col transition-all duration-300 min-h-screen">
+        
         <!-- Mobile Header -->
-        <header class="h-16 md:hidden flex items-center justify-between px-4 bg-white border-b border-slate-100 sticky top-0 z-30">
+        <header class="h-16 md:hidden flex-none flex items-center justify-between px-4 bg-white border-b border-slate-100 sticky top-0 z-30">
             <div class="flex items-center gap-3">
                 <button @click="sidebarOpen = true" class="p-2 -ml-2 text-slate-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -125,7 +165,8 @@
             </div>
         </header>
 
-        <div class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+        <!-- Page Content -->
+        <div class="flex-1 p-4 md:p-8 w-full max-w-7xl mx-auto">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                     <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
@@ -167,6 +208,7 @@
         </div>
     </main>
 
+    <!-- MODAL GLOBAL -->
     <div x-data="{ open: false, title: '', message: '', form: null }"
          @confirm-action.window="open = true; title = $event.detail.title; message = $event.detail.message; form = $event.detail.form"
          class="relative z-[60]" aria-labelledby="modal-title" role="dialog" aria-modal="true" style="display: none;" x-show="open">

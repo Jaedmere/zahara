@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class AbonoController extends Controller
 {
@@ -23,15 +24,12 @@ class AbonoController extends Controller
         $fecha_desde = $request->input('fecha_desde');
         $fecha_hasta = $request->input('fecha_hasta');
 
-        // Lista para el select de filtros en la vista index
         $eds_list = EDS::select('id', 'nombre')->where('activo', true)->orderBy('nombre')->get();
 
         $query = Abono::query();
 
-        // 1. Lógica de Estado (SoftDeletes) y Relaciones
         if ($status === 'anulados') {
-            $query->onlyTrashed(); // Ver anulados
-            // Cargar detalles incluso si están borrados
+            $query->onlyTrashed(); 
             $query->with(['cliente:id,razon_social', 'eds:id,nombre', 'user:id,name', 'detalles' => function($q) {
                 $q->withTrashed()->with('factura');
             }]);
@@ -39,19 +37,15 @@ class AbonoController extends Controller
             $query->with(['cliente:id,razon_social', 'eds:id,nombre', 'user:id,name', 'detalles.factura']);
         }
 
-        // 2. Filtros Avanzados
         $query->when($eds_id, fn($q) => $q->where('eds_id', $eds_id))
               ->when($fecha_desde, fn($q) => $q->whereDate('fecha', '>=', $fecha_desde))
               ->when($fecha_hasta, fn($q) => $q->whereDate('fecha', '<=', $fecha_hasta));
 
-        // 3. Buscador General
         $query->when($search !== '', function ($q) use ($search, $status) {
             $q->where(function($sub) use ($search, $status) {
                 $sub->whereHas('cliente', fn($c) => $c->where('razon_social', 'like', "%{$search}%"))
                     ->orWhereHas('detalles', function($d) use ($search, $status) {
-                        if ($status === 'anulados') {
-                            $d->withTrashed(); 
-                        }
+                        if ($status === 'anulados') { $d->withTrashed(); }
                         $d->whereHas('factura', fn($f) => $f->where('consecutivo', 'like', "%{$search}%"));
                     })
                     ->orWhere('referencia_bancaria', 'like', "%{$search}%")
@@ -59,9 +53,7 @@ class AbonoController extends Controller
             });
         });
 
-        $abonos = $query->latest()
-            ->paginate(15)
-            ->withQueryString();
+        $abonos = $query->latest()->paginate(15)->withQueryString();
 
         if ($request->ajax()) {
             return view('abonos.partials.table', compact('abonos'))->render();
@@ -76,7 +68,6 @@ class AbonoController extends Controller
         return view('abonos.create', compact('eds'));
     }
 
-    // API: Autocomplete de Clientes
     public function buscarClientes(Request $request)
     {
         $term = $request->input('q');
@@ -94,7 +85,7 @@ class AbonoController extends Controller
         return response()->json($clientes);
     }
 
-    // API: Cartera Pendiente de un Cliente
+    // --- API ACTUALIZADA: CARTERA CON DÍAS DE MORA ---
     public function carteraCliente(Request $request, Cliente $cliente)
     {
         $query = Factura::query()
@@ -102,25 +93,21 @@ class AbonoController extends Controller
             ->pendientes() 
             ->with('eds:id,nombre');
 
-        // Filtros internos de la API
-        if ($request->filled('eds_id')) {
-            $query->where('eds_id', $request->eds_id);
-        }
+        if ($request->filled('eds_id')) $query->where('eds_id', $request->eds_id);
+        if ($request->filled('q_factura')) $query->where('consecutivo', 'like', '%' . $request->q_factura . '%');
+        if ($request->filled('corte_desde')) $query->whereDate('corte_desde', '>=', $request->corte_desde);
+        if ($request->filled('corte_hasta')) $query->whereDate('corte_desde', '<=', $request->corte_hasta);
 
-        if ($request->filled('q_factura')) {
-            $query->where('consecutivo', 'like', '%' . $request->q_factura . '%');
-        }
-
-        // Total deuda global para el resumen
         $totalDeuda = (clone $query)->sum('saldo_pendiente');
 
-        // Paginación
         $pendientes = $query
             ->orderBy('fecha_vencimiento', 'asc')
-            ->paginate(20);
+            ->paginate($request->input('per_page', 50));
 
-        // Transformación de datos (Aquí agregamos el corte)
         $data = $pendientes->getCollection()->map(function($f) {
+            // Cálculo días vencidos (Positivo = Vencido, Negativo = Faltan días)
+            $dias = Carbon::now()->diffInDays($f->fecha_vencimiento, false) * -1;
+
             return [
                 'id' => $f->id,
                 'consecutivo' => $f->consecutivo,
@@ -128,10 +115,14 @@ class AbonoController extends Controller
                 'fecha_vencimiento' => $f->fecha_vencimiento->format('Y-m-d'),
                 'saldo_pendiente' => $f->saldo_pendiente,
                 'eds' => $f->eds,
+                'corte_desde' => $f->corte_desde ? $f->corte_desde->format('Y-m-d') : 'N/A',
+                'corte_hasta' => $f->corte_hasta ? $f->corte_hasta->format('Y-m-d') : 'N/A',
+                'valor_total' => $f->valor_total,
+                'descuento' => $f->descuento,
+                'abonos_previos' => $f->valor_total - $f->saldo_pendiente,
                 
-                // --- NUEVOS CAMPOS: FECHAS DE CORTE ---
-                'corte_desde' => $f->corte_desde ? $f->corte_desde->format('Y-m-d') : '',
-                'corte_hasta' => $f->corte_hasta ? $f->corte_hasta->format('Y-m-d') : '',
+                // DATO NUEVO PARA EL FRONT
+                'dias_vencidos' => intval($dias),
             ];
         });
 
@@ -162,13 +153,10 @@ class AbonoController extends Controller
             $primerFacturaId = array_values($request->detalles)[0]['factura_id'] ?? null;
             
             if(!$primerFacturaId) throw new \Exception("No se recibieron detalles válidos.");
-            
             $facturaRef = Factura::find($primerFacturaId);
             if(!$facturaRef) throw new \Exception("La factura referencia no existe.");
-            
             $edsId = $facturaRef->eds_id;
 
-            // Validación de montos
             foreach ($request->detalles as $item) {
                 $factura = Factura::findOrFail($item['factura_id']);
                 if ($item['abono'] > $factura->saldo_pendiente + 0.01) {
@@ -178,7 +166,6 @@ class AbonoController extends Controller
             }
 
             DB::transaction(function () use ($request, $totalRecibo, $edsId) {
-                // 1. Crear Recibo
                 $abono = Abono::create([
                     'cliente_id'      => $request->cliente_id,
                     'eds_id'          => $edsId, 
@@ -190,7 +177,6 @@ class AbonoController extends Controller
                     'user_id'         => Auth::id()
                 ]);
 
-                // 2. Crear Detalles
                 foreach ($request->detalles as $item) {
                     if ($item['abono'] > 0) {
                         AbonoDetalle::create([
