@@ -49,7 +49,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-slate-900 text-lg leading-tight">Zahara</h1>
-                    <p class="text-[10px] font-bold text-indigo-500 tracking-widest uppercase">Technology</p>
+                    <p class="text-[10px] font-bold text-indigo-500 tracking-widest uppercase">Combured</p>
                 </div>
             </div>
         </div>

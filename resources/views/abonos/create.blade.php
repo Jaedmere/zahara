@@ -105,7 +105,7 @@
                     </div>
                     <div class="text-4xl font-bold font-mono tracking-tight" x-text="formatMoney(totalAbono)"></div>
                     
-                    {{-- Inputs ocultos con índice explícito --}}
+                    {{-- Inputs ocultos dinámicos --}}
                     <template x-for="(amount, id) in selectedMap" :key="id">
                         <div x-if="amount > 0">
                             <input type="hidden" :name="'detalles[' + id + '][factura_id]'" :value="id">
@@ -127,13 +127,40 @@
                 </div>
             </div>
 
-            {{-- COLUMNA DERECHA: TABLA CARTERA --}}
+            {{-- COLUMNA DERECHA: TABLA DE CARTERA --}}
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full min-h-[600px]">
-                    <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">
-                            3. Seleccionar Cuentas
-                        </h3>
+                    
+                    {{-- HEADER CON FILTROS RESTAURADOS --}}
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-3">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                3. Seleccionar Cuentas
+                            </h3>
+                            
+                            {{-- Botón Toggle Filtros --}}
+                            <button type="button" @click="showFilters = !showFilters" class="text-xs flex items-center gap-1 text-slate-500 hover:text-indigo-600">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                                Filtros
+                            </button>
+                        </div>
+
+                        {{-- Panel Filtros Desplegable --}}
+                        <div x-show="showFilters" x-transition class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 pb-2 border-t border-slate-200 mt-2">
+                            
+                            <!-- Filtro EDS -->
+                            <select x-model="filters.eds" @change="cargarCartera(1)" class="input-pill text-xs py-2 bg-white">
+                                <option value="">Todas las EDS</option>
+                                @foreach($eds as $e)
+                                    <option value="{{ $e->id }}">{{ $e->nombre }}</option>
+                                @endforeach
+                            </select>
+                            
+                            <!-- Filtro Búsqueda Factura -->
+                            <input type="text" x-model="filters.q_factura" @input.debounce.500ms="cargarCartera(1)" 
+                                   class="input-pill text-xs py-2" placeholder="Buscar N° Cuenta...">
+                        </div>
                     </div>
 
                     <div class="overflow-y-auto flex-1 p-0 relative">
@@ -147,7 +174,7 @@
 
                         <div x-show="cliente.id && cartera.length === 0 && !isLoading" class="h-full flex flex-col items-center justify-center text-slate-400 p-10">
                             <p class="text-sm font-medium text-emerald-600">¡Al día!</p>
-                            <p class="text-xs">No hay cuentas pendientes en esta página.</p>
+                            <p class="text-xs">No hay cuentas pendientes.</p>
                         </div>
 
                         <table x-show="cartera.length > 0" class="w-full text-left border-collapse">
@@ -175,11 +202,9 @@
                                         <td class="px-4 py-3">
                                             <div class="font-bold font-mono text-indigo-900" x-text="'#' + item.consecutivo"></div>
                                             <div class="text-[10px] text-slate-400 uppercase" x-text="item.eds.nombre"></div>
-                                            
-                                            {{-- VISUALIZACIÓN DEL CORTE EN LA TABLA --}}
-                                            <div class="text-[9px] text-indigo-500 mt-1 font-medium bg-indigo-50 px-1.5 py-0.5 rounded inline-block"
-                                                 x-show="item.corte_desde && item.corte_hasta">
-                                                <span x-text="formatDate(item.corte_desde)"></span> a <span x-text="formatDate(item.corte_hasta)"></span>
+                                            {{-- CORTE VISIBLE --}}
+                                            <div class="text-[9px] text-slate-500 mt-0.5 bg-slate-50 px-1 rounded inline-block">
+                                                <span class="font-bold">Corte:</span> <span x-text="formatDate(item.corte_desde) + ' a ' + formatDate(item.corte_hasta)"></span>
                                             </div>
                                         </td>
                                         
@@ -220,8 +245,13 @@
         Alpine.data('erpAbono', () => ({
             search: '',
             showResults: false,
+            showFilters: true, // Filtros visibles por defecto para que sepan que existen
             results: [],
             cliente: { id: null, razon_social: '' },
+            
+            // FILTROS RESTAURADOS
+            filters: { eds: '', q_factura: '' },
+
             cartera: [],
             meta: { current_page: 1, last_page: 1, total: 0, total_deuda: 0 },
             isLoading: false,
@@ -251,15 +281,22 @@
                 this.cartera = [];
                 this.selectedMap = {};
                 this.meta = { current_page: 1, last_page: 1, total: 0, total_deuda: 0 };
+                this.filters = { eds: '', q_factura: '' };
             },
 
             cargarCartera(page) {
                 if (!this.cliente.id) return;
                 this.isLoading = true;
-                let url = "{{ route('api.clientes.cartera', ':id') }}".replace(':id', this.cliente.id);
-                url += `?page=${page}`;
                 
-                fetch(url)
+                let url = "{{ route('api.clientes.cartera', ':id') }}".replace(':id', this.cliente.id);
+                const params = new URLSearchParams({
+                    page: page,
+                    // Enviamos los filtros al backend
+                    eds_id: this.filters.eds,
+                    q_factura: this.filters.q_factura
+                });
+
+                fetch(`${url}?${params.toString()}`)
                     .then(res => res.json())
                     .then(response => {
                         this.cartera = response.data;
