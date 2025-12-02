@@ -9,23 +9,31 @@
 
 @section('page_actions')
     <a href="{{ route('facturas.create') }}" class="btn-primary px-4 py-2.5 text-sm inline-flex items-center justify-center gap-2 shadow-sm w-full md:w-auto transition-transform active:scale-95">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m8-8H4"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 4v16m8-8H4"/>
+        </svg>
         <span>Nueva Cuenta</span>
     </a>
 @endsection
 
 @section('content')
-<div x-data="searchHandler({ showFilters: {{ request('eds_id') || request('fecha_desde') ? 'true' : 'false' }} })" class="flex flex-col gap-4 md:gap-6 pb-20 md:pb-0">
+<div x-data="searchHandler({ showFilters: {{ request('eds_id') || request('fecha_desde') ? 'true' : 'false' }} })"
+     class="flex flex-col gap-4 md:gap-6 pb-20 md:pb-0">
 
     <!-- TOOLBAR -->
     <div class="sticky top-0 z-20 bg-[#F8FAFC]/95 backdrop-blur py-2 md:static md:bg-transparent md:py-0 transition-all">
         <div class="flex flex-col gap-3">
-            
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+
+            {{-- Row principal: ahora puede hacer wrap en md si no cabe todo --}}
+            <div class="flex flex-col md:flex-row md:flex-wrap md:items-center md:justify-between gap-3">
+
                 <!-- Buscador -->
                 <div class="relative w-full md:max-w-md group shadow-sm md:shadow-none rounded-xl">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 z-10">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
                     </div>
                     <input 
                         type="text" 
@@ -34,24 +42,27 @@
                         placeholder="N° Cuenta o Cliente..." 
                         class="input-pill !pl-12 pr-10 bg-white h-12 md:h-10 text-base md:text-sm shadow-sm md:shadow-none border-slate-200 focus:border-indigo-500 relative z-0"
                     >
-                    
+
                     <!-- Botón Toggle Filtros (Embudo) -->
                     <button @click="toggleFilters" 
                             class="absolute inset-y-0 right-0 px-3 flex items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors z-20"
-                            :class="{'text-indigo-600': showFilters}"
+                            :class="{ 'text-indigo-600': showFilters }"
                             title="Filtros Avanzados (Fecha / EDS)">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
                     </button>
                 </div>
 
                 <!-- CONTENEDOR DERECHO: TABS + EXCEL -->
-                <div class="flex items-center gap-2 overflow-x-auto max-w-full no-scrollbar">
-                    
-                    <!-- TABS de Estado -->
-                    <div class="flex p-1 bg-slate-200/60 rounded-xl self-start">
+                <div class="flex items-center gap-2 md:justify-end min-w-0">
+
+                    <!-- TABS de Estado (con scroll propio si se desbordan) -->
+                    <div class="flex p-1 bg-slate-200/60 rounded-xl self-start overflow-x-auto max-w-full no-scrollbar">
                         @php $estado = request('estado', 'pendientes'); @endphp
                         @foreach(['pendientes' => 'Por Cobrar', 'pagadas' => 'Pagadas', 'anuladas' => 'Anuladas', 'todas' => 'Todas'] as $key => $label)
-                            <a href="#" 
+                            <a href="#"
                                @click.prevent="setEstado('{{ $key }}')"
                                class="whitespace-nowrap px-4 py-2 md:py-1.5 rounded-lg text-xs font-semibold transition-all {{ $estado === $key ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
                                 {{ $label }}
@@ -59,7 +70,7 @@
                         @endforeach
                     </div>
 
-                    <!-- BOTÓN EXCEL -->
+                    <!-- BOTÓN EXCEL (no se desborda, flex-shrink-0) -->
                     <a :href="'{{ route('facturas.export') }}?' + new URLSearchParams({
                             search: search || '', 
                             estado: estado || 'pendientes',
@@ -68,11 +79,13 @@
                             fecha_hasta: filters.fecha_hasta || ''
                        }).toString()" 
                        target="_blank"
-                       class="btn-secondary h-full flex items-center justify-center px-3 py-2 rounded-xl text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 transition-colors shadow-sm"
+                       class="btn-secondary flex-shrink-0 h-full flex items-center justify-center px-3 py-2 rounded-xl text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 transition-colors shadow-sm"
                        title="Exportar a Excel">
-                       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
                     </a>
-
                 </div>
             </div>
 
@@ -107,7 +120,10 @@
                 <div class="flex gap-2">
                     <button @click="performSearch" class="btn-primary w-full py-2 text-xs">Aplicar Filtros</button>
                     <button @click="clearFilters" class="btn-secondary w-auto px-3 py-2 text-xs text-red-500 hover:text-red-700" title="Limpiar Filtros">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -118,8 +134,8 @@
     <!-- RESULTADOS -->
     <div class="bg-white/60 backdrop-blur-xl rounded-2xl border border-soft shadow-sm relative min-h-[300px] overflow-hidden">
         <div x-show="isLoading" class="absolute inset-0 bg-white/40 z-10 backdrop-blur-[1px]" style="display: none;"></div>
-        
-        {{-- ESTE WRAPPER ES EL QUE TE AISLA EL SCROLL HORIZONTAL --}}
+
+        <!-- El scroll horizontal queda encapsulado solo aquí -->
         <div class="overflow-x-auto w-full">
             <div id="results-container" class="min-w-full">
                 @include('facturas.partials.table', ['facturas' => $facturas])
@@ -136,7 +152,7 @@
             showFilters: config.showFilters,
             isLoading: false,
             controller: null,
-            
+
             // Objeto para filtros avanzados
             filters: {
                 eds_id: @js(request('eds_id', '')),
@@ -165,19 +181,16 @@
                 if (this.controller) this.controller.abort();
                 this.controller = new AbortController();
                 this.isLoading = true;
-                
-                // Construir URL con todos los parámetros
+
                 const params = new URLSearchParams();
                 if (this.search) params.set('search', this.search);
                 if (this.estado) params.set('estado', this.estado);
-                
-                // Agregar filtros avanzados si tienen valor
                 if (this.filters.eds_id) params.set('eds_id', this.filters.eds_id);
                 if (this.filters.fecha_desde) params.set('fecha_desde', this.filters.fecha_desde);
                 if (this.filters.fecha_hasta) params.set('fecha_hasta', this.filters.fecha_hasta);
 
                 const url = `${window.location.pathname}?${params.toString()}`;
-                
+
                 fetch(url, { 
                     headers: { 
                         'X-Requested-With': 'XMLHttpRequest', 

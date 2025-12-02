@@ -34,7 +34,8 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-[#F8FAFC] font-sans text-slate-600 antialiased min-h-screen flex flex-col md:flex-row" x-data="{ sidebarOpen: false }">
+<body class="bg-[#F8FAFC] font-sans text-slate-600 antialiased min-h-screen flex flex-col md:flex-row overflow-x-hidden"
+      x-data="{ sidebarOpen: false }">
 
     <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition.opacity 
          class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden" style="display: none;"></div>
@@ -73,7 +74,7 @@
                 $iClients = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>';
                 $iUsers = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>';
                 $iRoles = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>';
-                $iAbonos = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a1 1 0 11-2 0 1 1 0 012 0z"/></svg>';
+                $iAbonos = '<svg class="w-5 h-5"fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a1 1 0 11-2 0 1 1 0 012 0z"/></svg>';
                 $iCartera = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>';
             @endphp
 
@@ -86,15 +87,30 @@
             <!-- Acordeón Cartera -->
             <div x-data="{ open: {{ request()->routeIs('cartera.*') || request()->routeIs('cartera_eds.*') ? 'true' : 'false' }} }" class="space-y-1">
                 <button @click="open = !open" class="flex items-center justify-between w-full gap-3 px-4 py-3 rounded-xl font-medium transition-all group cursor-pointer select-none" :class="open || {{ request()->routeIs('cartera.*') || request()->routeIs('cartera_eds.*') ? 'true' : 'false' }} ? 'bg-slate-50 text-slate-900' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'">
-                    <div class="flex items-center gap-3"><span :class="open || {{ request()->routeIs('cartera.*') || request()->routeIs('cartera_eds.*') ? 'true' : 'false' }} ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'">{!! $iCartera !!}</span><span>Estado de Cartera</span></div>
-                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    <div class="flex items-center gap-3">
+                        <span :class="open || {{ request()->routeIs('cartera.*') || request()->routeIs('cartera_eds.*') ? 'true' : 'false' }} ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'">
+                            {!! $iCartera !!}
+                        </span>
+                        <span>Estado de Cartera</span>
+                    </div>
+                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </button>
                 <div x-show="open" x-collapse x-cloak class="pl-11 pr-2 space-y-1">
                     <a href="{{ route('cartera.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors {{ request()->routeIs('cartera.index') ? 'text-indigo-700 font-medium bg-indigo-50' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' }}">
-                         <svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg> Consolidado Combured
+                         <svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                         </svg> 
+                         Consolidado Combured
                     </a>
                     <a href="{{ route('cartera_eds.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors {{ request()->routeIs('cartera_eds.index') ? 'text-indigo-700 font-medium bg-indigo-50' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' }}">
-                        <svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Consolidado por EDS
+                        <svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg> 
+                        Consolidado por EDS
                     </a>
                 </div>
             </div>
@@ -109,54 +125,135 @@
         
         <div class="flex-none border-t border-slate-100 p-4 bg-white">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold">{{ substr(Auth::user()->name ?? 'U', 0, 1) }}</div>
-                <div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-900 truncate">{{ Auth::user()->name ?? 'Usuario' }}</p><p class="text-xs text-slate-500 truncate">{{ Auth::user()->email ?? 'user@zahara.com' }}</p></div>
-                <form method="POST" action="{{ route('logout') }}">@csrf<button class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Cerrar Sesión"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></button></form>
+                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold">
+                    {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-slate-900 truncate">{{ Auth::user()->name ?? 'Usuario' }}</p>
+                    <p class="text-xs text-slate-500 truncate">{{ Auth::user()->email ?? 'user@zahara.com' }}</p>
+                </div>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Cerrar Sesión">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </button>
+                </form>
             </div>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT (CORRECCIÓN AQUÍ: w-full y quitar max-w-7xl) -->
-    <main class="md:ml-72 flex-1 flex flex-col transition-all duration-300 min-h-screen">
+    <!-- MAIN CONTENT -->
+    <main class="md:ml-72 flex-1 flex flex-col transition-all duration-300 min-h-screen overflow-x-hidden">
         
         <!-- Mobile Header -->
         <header class="h-16 md:hidden flex-none flex items-center justify-between px-4 bg-white border-b border-slate-100 sticky top-0 z-30">
-            <div class="flex items-center gap-3"><button @click="sidebarOpen = true" class="p-2 -ml-2 text-slate-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><span class="font-bold text-lg text-slate-900">Zahara</span></div>
-            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">{{ substr(Auth::user()->name ?? 'U', 0, 1) }}</div>
+            <div class="flex items-center gap-3">
+                <button @click="sidebarOpen = true" class="p-2 -ml-2 text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <span class="font-bold text-lg text-slate-900">Zahara</span>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
+            </div>
         </header>
 
         <!-- Page Content -->
-        {{-- CORRECCIÓN: Usamos 'w-full' y quitamos 'max-w-7xl' para que las vistas hijas puedan expandirse --}}
         <div class="flex-1 p-4 md:p-8 w-full">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
-                    <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">@yield('breadcrumb')</div>
-                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">@yield('page_title')</h2>
-                    @hasSection('page_subtitle')<p class="text-sm text-slate-500 mt-1">@yield('page_subtitle')</p>@endif
+                    <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
+                        @yield('breadcrumb')
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
+                        @yield('page_title')
+                    </h2>
+                    @hasSection('page_subtitle')
+                        <p class="text-sm text-slate-500 mt-1">@yield('page_subtitle')</p>
+                    @endif
                 </div>
-                <div class="flex items-center gap-3">@yield('page_actions')</div>
+                <div class="flex items-center gap-3">
+                    @yield('page_actions')
+                </div>
             </div>
-            @if(session('ok'))<div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" class="mb-6 bg-emerald-50 border border-emerald-100 text-emerald-800 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm animate-enter"><svg class="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><p class="text-sm font-medium">{{ session('ok') }}</p></div>@endif
-            @if($errors->any())<div class="mb-6 bg-red-50 border border-red-100 text-red-800 px-4 py-3 rounded-xl shadow-sm animate-enter"><div class="flex items-center gap-2 mb-2"><svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><p class="font-bold text-sm">Errores:</p></div><ul class="list-disc list-inside text-sm space-y-1 ml-1 text-red-700/80">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+
+            @if(session('ok'))
+                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" class="mb-6 bg-emerald-50 border border-emerald-100 text-emerald-800 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm animate-enter">
+                    <svg class="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-sm font-medium">{{ session('ok') }}</p>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-6 bg-red-50 border border-red-100 text-red-800 px-4 py-3 rounded-xl shadow-sm animate-enter">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p class="font-bold text-sm">Errores:</p>
+                    </div>
+                    <ul class="list-disc list-inside text-sm space-y-1 ml-1 text-red-700/80">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @yield('content')
         </div>
     </main>
 
     <!-- MODAL GLOBAL -->
-    <div x-data="{ open: false, title: '', message: '', form: null }" @confirm-action.window="open = true; title = $event.detail.title; message = $event.detail.message; form = $event.detail.form" class="relative z-[60]" aria-labelledby="modal-title" role="dialog" aria-modal="true" style="display: none;" x-show="open">
+    <div x-data="{ open: false, title: '', message: '', form: null }"
+         @confirm-action.window="open = true; title = $event.detail.title; message = $event.detail.message; form = $event.detail.form"
+         class="relative z-[60]" aria-labelledby="modal-title" role="dialog" aria-modal="true"
+         style="display: none;" x-show="open">
         <div x-show="open" x-transition.opacity class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
             <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-100">
+                <div x-show="open"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-100">
                     <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                         <div class="sm:flex sm:items-start">
-                            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10"><svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg></div>
-                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left"><h3 class="text-base font-semibold leading-6 text-slate-900" x-text="title"></h3><div class="mt-2"><p class="text-sm text-slate-500" x-text="message"></p></div></div>
+                            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                                <h3 class="text-base font-semibold leading-6 text-slate-900" x-text="title"></h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-slate-500" x-text="message"></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-slate-100">
-                        <button type="button" @click="form.submit(); open = false" class="inline-flex w-full justify-center rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">Confirmar</button>
-                        <button type="button" @click="open = false" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto">Cancelar</button>
+                        <button type="button"
+                                @click="form.submit(); open = false"
+                                class="inline-flex w-full justify-center rounded-xl bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">
+                            Confirmar
+                        </button>
+                        <button type="button"
+                                @click="open = false"
+                                class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto">
+                            Cancelar
+                        </button>
                     </div>
                 </div>
             </div>
