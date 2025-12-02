@@ -26,10 +26,7 @@ class EDS extends Model
 
     /**
      * MUTADORES
-     * Estos métodos se ejecutan automáticamente antes de guardar en la BD.
      */
-
-    // Intercepta el 'nombre' y lo convierte a Title Case (Nombre Propio)
     protected function nombre(): Attribute
     {
         return Attribute::make(
@@ -37,23 +34,26 @@ class EDS extends Model
         );
     }
 
-    // Intercepta el 'codigo' y lo fuerza a MAYÚSCULAS (Recomendado)
     protected function codigo(): Attribute
     {
         return Attribute::make(
             set: fn (string $value) => Str::upper($value),
         );
     }
-        protected function ciudad(): Attribute
-    {
-        return Attribute::make(
-            set: fn (string $value) => Str::title($value),
-        );
-    }
 
     /**
      * RELACIONES
      */
+
+    // ESTA FUE LA QUE FALTÓ: Relación con Facturas
+    public function facturas() {
+        return $this->hasMany(Factura::class, 'eds_id');
+    }
+
+    // Relación con Abonos
+    public function abonos() {
+        return $this->hasMany(Abono::class, 'eds_id');
+    }
 
     public function usuarios() {
         return $this->belongsToMany(User::class, 'user_eds', 'eds_id', 'user_id');

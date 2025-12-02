@@ -24,6 +24,7 @@
         "test": "tests"
     },
     "dependencies": {
+        "@alpinejs/collapse": "^3.15.2",
         "alpinejs": "^3.15.1",
         "ansi-regex": "^5.0.1",
         "ansi-styles": "^4.3.0",
