@@ -115,11 +115,15 @@
         </div>
     </div>
 
-    <!-- Resultados -->
-    <div class="bg-white/60 backdrop-blur-xl rounded-2xl border border-soft shadow-sm overflow-hidden relative min-h-[300px]">
+    <!-- RESULTADOS -->
+    <div class="bg-white/60 backdrop-blur-xl rounded-2xl border border-soft shadow-sm relative min-h-[300px] overflow-hidden">
         <div x-show="isLoading" class="absolute inset-0 bg-white/40 z-10 backdrop-blur-[1px]" style="display: none;"></div>
-        <div id="results-container">
-            @include('facturas.partials.table', ['facturas' => $facturas])
+        
+        {{-- ESTE WRAPPER ES EL QUE TE AISLA EL SCROLL HORIZONTAL --}}
+        <div class="overflow-x-auto w-full">
+            <div id="results-container" class="min-w-full">
+                @include('facturas.partials.table', ['facturas' => $facturas])
+            </div>
         </div>
     </div>
 </div>
@@ -174,7 +178,13 @@
 
                 const url = `${window.location.pathname}?${params.toString()}`;
                 
-                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }, signal: this.controller.signal })
+                fetch(url, { 
+                    headers: { 
+                        'X-Requested-With': 'XMLHttpRequest', 
+                        'Accept': 'text/html' 
+                    }, 
+                    signal: this.controller.signal 
+                })
                 .then(r => r.text())
                 .then(html => { 
                     document.getElementById('results-container').innerHTML = html; 

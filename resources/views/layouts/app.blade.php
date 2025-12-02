@@ -11,7 +11,6 @@
     <link rel="shortcut icon" href="{{ asset('favicon.svg') }}?v=3">
     <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}?v=3">
 
-    {{-- Scripts y Estilos (Aquí ya va incluido Alpine + Collapse compilado) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <style>
@@ -40,6 +39,7 @@
     <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition.opacity 
          class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden" style="display: none;"></div>
 
+    <!-- SIDEBAR -->
     <aside class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 shadow-2xl md:shadow-none transform transition-transform duration-300 md:translate-x-0 flex flex-col h-full"
            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
         
@@ -50,7 +50,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-slate-900 text-lg leading-tight">Zahara</h1>
-                    <p class="text-[10px] font-bold text-indigo-500 tracking-widest uppercase">Technology</p>
+                    <p class="text-[10px] font-bold text-indigo-500 tracking-widest uppercase">Combured</p>
                 </div>
             </div>
         </div>
@@ -116,12 +116,18 @@
         </div>
     </aside>
 
-    <main class="md:pl-72 min-h-screen flex flex-col transition-all duration-300">
+    <!-- MAIN CONTENT (CORRECCIÓN AQUÍ: w-full y quitar max-w-7xl) -->
+    <main class="md:ml-72 flex-1 flex flex-col transition-all duration-300 min-h-screen">
+        
+        <!-- Mobile Header -->
         <header class="h-16 md:hidden flex-none flex items-center justify-between px-4 bg-white border-b border-slate-100 sticky top-0 z-30">
             <div class="flex items-center gap-3"><button @click="sidebarOpen = true" class="p-2 -ml-2 text-slate-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button><span class="font-bold text-lg text-slate-900">Zahara</span></div>
             <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">{{ substr(Auth::user()->name ?? 'U', 0, 1) }}</div>
         </header>
-        <div class="flex-1 p-4 md:p-8 w-full max-w-7xl mx-auto">
+
+        <!-- Page Content -->
+        {{-- CORRECCIÓN: Usamos 'w-full' y quitamos 'max-w-7xl' para que las vistas hijas puedan expandirse --}}
+        <div class="flex-1 p-4 md:p-8 w-full">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                     <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">@yield('breadcrumb')</div>
