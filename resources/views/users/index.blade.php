@@ -15,15 +15,15 @@
 @endsection
 
 @section('content')
-<div x-data="searchHandler()" class="flex flex-col gap-4 md:gap-6 pb-20 md:pb-0">
+<div x-data="searchHandler()" class="flex flex-col gap-6 w-full">
 
     <!-- TOOLBAR STICKY -->
-    <div class="sticky top-0 z-20 bg-[#F8FAFC]/95 backdrop-blur py-2 md:static md:bg-transparent md:py-0 transition-all">
+    <div class="sticky top-0 z-20 bg-[#F8FAFC]/95 backdrop-blur py-2 md:static md:bg-transparent md:py-0 transition-all w-full">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             
             <!-- Buscador -->
             <div class="relative w-full md:max-w-md group shadow-sm md:shadow-none rounded-xl">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 transition-colors group-focus-within:text-indigo-500">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 transition-colors group-focus-within:text-indigo-500 z-10">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
                 <input 
@@ -31,9 +31,9 @@
                     x-model="search"
                     @input.debounce.300ms="performSearch"
                     placeholder="Buscar por nombre o email..." 
-                    class="input-pill !pl-12 pr-10 bg-white h-12 md:h-10 text-base md:text-sm shadow-sm md:shadow-none border-slate-200 focus:border-indigo-500"
+                    class="input-pill !pl-12 pr-10 bg-white h-12 md:h-10 text-base md:text-sm shadow-sm md:shadow-none border-slate-200 focus:border-indigo-500 relative z-0 w-full"
                 >
-                <div x-show="isLoading" class="absolute inset-y-0 right-0 pr-4 flex items-center" style="display: none;">
+                <div x-show="isLoading" class="absolute inset-y-0 right-0 pr-4 flex items-center z-20" style="display: none;">
                     <svg class="animate-spin h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 </div>
             </div>
@@ -55,7 +55,7 @@
     </div>
 
     <!-- Contenedor Resultados -->
-    <div class="bg-white/60 backdrop-blur-xl rounded-2xl border border-soft shadow-sm overflow-hidden relative min-h-[300px]">
+    <div class="relative min-h-[200px] w-full bg-white/60 backdrop-blur-xl rounded-2xl border border-soft shadow-sm overflow-hidden">
         <div x-show="isLoading" class="absolute inset-0 bg-white/40 z-10 backdrop-blur-[1px]" style="display: none;"></div>
         <div id="results-container">
             @include('users.partials.table', ['users' => $users])
@@ -74,12 +74,21 @@
                 if (this.controller) this.controller.abort();
                 this.controller = new AbortController();
                 this.isLoading = true;
+                
                 const params = new URLSearchParams(window.location.search);
                 this.search ? params.set('search', this.search) : params.delete('search');
                 params.delete('page');
-                const url = `${window.location.pathname}?${params.toString()}`;
+                
+                // AGREGAMOS BANDERA AJAX PARA EVITAR CARGA COMPLETA
+                const url = `${window.location.pathname}?${params.toString()}&ajax=1`;
+                
+                // Actualizamos URL visual
+                window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+                
                 fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }, signal: this.controller.signal })
-                .then(r => r.text()).then(html => { document.getElementById('results-container').innerHTML = html; window.history.pushState({}, '', url); })
+                .then(r => r.text()).then(html => { 
+                    document.getElementById('results-container').innerHTML = html; 
+                })
                 .finally(() => { self.isLoading = false; });
             }
         }

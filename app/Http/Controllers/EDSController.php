@@ -12,16 +12,12 @@ class EDSController extends Controller
         $search = $request->string('search')->trim()->toString();
         $status = $request->input('status', 'active');
 
-        // CONSULTA OPTIMIZADA
         $eds = EDS::query()
-            // Traemos solo columnas usadas en la vista (Cards/Tabla)
-            ->select('id', 'codigo', 'nombre', 'nit', 'ciudad', 'activo', 'telefono', 'direccion') 
-            
-            // Filtro Estado
+            ->select('id', 'codigo', 'nombre', 'nit', 'ciudad', 'activo', 'telefono', 'direccion')
+            // Filtros
             ->when($status === 'active', fn($q) => $q->where('activo', true))
             ->when($status === 'inactive', fn($q) => $q->where('activo', false))
-
-            // Buscador Indexado
+            // Buscador
             ->when($search !== '', function ($query) use ($search) {
                 $term = '%' . $search . '%';
                 $query->where(function ($q) use ($term) {
@@ -34,7 +30,8 @@ class EDSController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        if ($request->ajax()) {
+        // --- CORRECCIÓN CLAVE: Detectar parámetro AJAX explícito ---
+        if ($request->ajax() || $request->input('ajax')) {
             return view('eds.partials.table', compact('eds'))->render();
         }
 

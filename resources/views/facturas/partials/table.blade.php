@@ -36,6 +36,9 @@
                             <span class="text-[10px] text-slate-400 block uppercase">Vencimiento</span>
                             <span class="text-xs font-medium {{ $f->dias_vencidos > 0 ? 'text-red-600' : 'text-slate-600' }}">
                                 {{ $f->fecha_vencimiento->format('d/m/Y') }}
+                                @if($f->dias_vencidos > 0 && $f->estado !== 'pagada')
+                                    <span class="block text-[9px] font-bold text-red-500">(+{{ $f->dias_vencidos }} días)</span>
+                                @endif
                             </span>
                         </div>
                     </div>
@@ -119,6 +122,7 @@
                             </div>
                         </td>
                         
+                        {{-- COLUMNA DE TIEMPOS (Limpia) --}}
                         <td class="px-6 py-3">
                             <div class="flex flex-col gap-1.5">
                                 <div class="flex justify-between text-[11px] gap-4 border-b border-slate-100 pb-1.5">
@@ -134,7 +138,7 @@
                                     </div>
                                 </div>
 
-                                {{-- CORTE --}}
+                                {{-- CORTE: Solo texto e icono, centrado y limpio --}}
                                 <div class="flex items-center justify-center gap-1.5 text-[9px] text-slate-500">
                                     <svg class="w-3 h-3 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                     <span class="font-mono text-[10px]">{{ $f->corte_desde->format('d/m/Y') }}</span>
