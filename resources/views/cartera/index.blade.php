@@ -97,6 +97,7 @@
                                         <span class="text-[10px] uppercase font-bold text-indigo-200 tracking-wider block">Total a Abonar</span>
                                         <div class="text-3xl font-mono font-bold" x-text="formatMoney(totalAbono)">$0.00</div>
                                     </div>
+                                    
                                     <div class="flex gap-2 w-full sm:w-auto">
                                         <input type="date" name="fecha" value="{{ date('Y-m-d') }}" class="input-pill text-xs py-2 h-9 bg-indigo-800/50 border-indigo-500 text-white placeholder-indigo-300 focus:ring-white/20" required>
                                         <select name="metodo_pago" class="input-pill text-xs py-2 h-9 bg-indigo-800/50 border-indigo-500 text-white focus:ring-white/20 appearance-none" required>
@@ -107,26 +108,21 @@
                                     </div>
                                 </div>
                                 
-                                <!-- CAMPOS EXTRA (REFERENCIA Y NOTAS) - AGREGADOS AQUÍ -->
+                                <!-- CAMPOS EXTRA (REFERENCIA Y NOTAS) -->
                                 <div class="mt-2 grid grid-cols-2 gap-2">
-                                    <input type="text" name="referencia" class="input-pill text-xs py-1.5 h-8 bg-indigo-800/30 border-transparent text-white placeholder-indigo-300 focus:ring-white/10" placeholder="Referencia / Recibo">
+                                    {{-- CORRECCIÓN: Atributo 'required' agregado aquí --}}
+                                    <input type="text" name="referencia" class="input-pill text-xs py-1.5 h-8 bg-indigo-800/30 border-transparent text-white placeholder-indigo-300 focus:ring-white/10" placeholder="Referencia / Recibo *" required>
+                                    
                                     <input type="text" name="notas" class="input-pill text-xs py-1.5 h-8 bg-indigo-800/30 border-transparent text-white placeholder-indigo-300 focus:ring-white/10" placeholder="Notas...">
                                 </div>
                             </div>
 
                             <!-- Body Panel -->
                             <div class="relative flex-1 bg-slate-50 flex flex-col">
-                                {{-- Filtros Internos --}}
                                 <div class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
                                     <div class="flex justify-between items-center">
-                                        <button type="button" @click="toggleSelectAll" class="text-xs text-indigo-600 font-bold hover:underline flex items-center gap-1">
-                                            <span x-text="allSelected ? 'Desmarcar Todo' : 'Seleccionar Todo Visible'"></span>
-                                        </button>
-
-                                        <button type="button" @click="showFilters = !showFilters" class="text-xs flex items-center gap-1 text-slate-500 hover:text-indigo-600 bg-slate-100 px-3 py-1.5 rounded-lg transition-colors">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                                            Filtros
-                                        </button>
+                                        <button type="button" @click="toggleSelectAll" class="text-xs text-indigo-600 font-bold hover:underline flex items-center gap-1"><span x-text="allSelected ? 'Desmarcar Todo' : 'Seleccionar Todo Visible'"></span></button>
+                                        <button type="button" @click="showFilters = !showFilters" class="text-xs flex items-center gap-1 text-slate-500 hover:text-indigo-600 bg-slate-100 px-3 py-1.5 rounded-lg transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg> Filtros</button>
                                     </div>
                                     <div x-show="showFilters" x-transition class="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t border-slate-100">
                                         <div class="col-span-1"><label class="text-[10px] font-bold text-slate-400 uppercase">EDS</label><select x-model="filters.eds" @change="reloadCartera()" class="input-pill text-xs py-1.5 mt-1"><option value="">Todas</option>@foreach(App\Models\EDS::where('activo', true)->get() as $e) <option value="{{ $e->id }}">{{ $e->nombre }}</option> @endforeach</select></div>
@@ -138,7 +134,6 @@
 
                                 <div class="overflow-y-auto flex-1 px-4 py-4 relative">
                                     <div x-show="isLoading" class="absolute inset-0 bg-white/80 z-10 flex items-center justify-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
-                                    
                                     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                                         <div class="overflow-x-auto">
                                             <table class="w-full text-left border-collapse">
@@ -157,45 +152,20 @@
                                                 </thead>
                                                 <tbody class="divide-y divide-slate-100 text-xs">
                                                     <template x-for="(item, index) in cartera" :key="item.id">
-                                                        <tr class="hover:bg-indigo-50/30 transition-colors group cursor-pointer" 
-                                                            @click="toggleSelection(item)"
-                                                            :class="{'bg-indigo-50': isSelected(item.id)}">
-                                                            
-                                                            <td class="px-4 py-3 text-center" @click.stop>
-                                                                <input type="checkbox" :checked="isSelected(item.id)" @change="toggleSelection(item)" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
-                                                            </td>
-                                                            
-                                                            <td class="px-4 py-3">
-                                                                <div class="font-bold font-mono text-indigo-900 text-sm" x-text="'#' + item.consecutivo"></div>
-                                                                <div class="text-[9px] text-slate-400 uppercase" x-text="item.eds.nombre"></div>
-                                                            </td>
-                                                            
-                                                            <td class="px-4 py-3 text-center whitespace-nowrap">
-                                                                <div class="text-[10px] font-mono text-slate-600" x-text="item.corte_desde + ' - ' + item.corte_hasta"></div>
-                                                                <div class="text-[9px] text-red-400 font-medium" x-text="'Vence: ' + item.fecha_vencimiento"></div>
-                                                            </td>
+                                                        <tr class="hover:bg-indigo-50/30 transition-colors group cursor-pointer" @click="toggleSelection(item)" :class="{'bg-indigo-50': isSelected(item.id)}">
+                                                            <td class="px-4 py-3 text-center" @click.stop><input type="checkbox" :checked="isSelected(item.id)" @change="toggleSelection(item)" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"></td>
+                                                            <td class="px-4 py-3"><div class="font-bold font-mono text-indigo-900 text-sm" x-text="'#' + item.consecutivo"></div><div class="text-[9px] text-slate-400 uppercase" x-text="item.eds.nombre"></div></td>
+                                                            <td class="px-4 py-3 text-center whitespace-nowrap"><div class="text-[10px] font-mono text-slate-600" x-text="item.corte_desde + ' - ' + item.corte_hasta"></div><div class="text-[9px] text-red-400 font-medium" x-text="'Vence: ' + item.fecha_vencimiento"></div></td>
                                                             
                                                             <td class="px-4 py-3 text-center font-bold" :class="item.dias_vencidos > 0 ? 'text-red-600' : 'text-emerald-600'" x-text="item.dias_vencidos > 0 ? item.dias_vencidos : 'OK'"></td>
-                                                            
+
                                                             <td class="px-4 py-3 text-right text-slate-500" x-text="formatMoney(item.valor_total)"></td>
                                                             <td class="px-4 py-3 text-right text-red-500 font-medium" x-text="item.descuento > 0 ? '-' + formatMoney(item.descuento) : '--'"></td>
                                                             <td class="px-4 py-3 text-right text-emerald-600 font-medium" x-text="item.abonos_previos > 0 ? formatMoney(item.abonos_previos) : '--'"></td>
-                                                            
                                                             <td class="px-4 py-3 text-right font-black text-slate-800 bg-slate-50/50 border-l border-slate-100" x-text="formatMoney(item.saldo_pendiente)"></td>
-                                                            
                                                             <td class="px-4 py-2 text-right bg-indigo-50/30 border-l border-indigo-100" @click.stop>
-                                                                <input type="number" step="0.01" 
-                                                                       x-model.number="selectedMap[item.id]" 
-                                                                       :disabled="!isSelected(item.id)"
-                                                                       class="w-full bg-white border border-slate-200 rounded px-2 py-1 text-right font-mono font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-xs disabled:bg-transparent disabled:border-transparent disabled:text-slate-300"
-                                                                       :max="item.saldo_pendiente">
-                                                                
-                                                                <template x-if="isSelected(item.id)">
-                                                                    <div>
-                                                                        <input type="hidden" :name="`detalles[${index}][factura_id]`" :value="item.id">
-                                                                        <input type="hidden" :name="`detalles[${index}][abono]`" :value="selectedMap[item.id]">
-                                                                    </div>
-                                                                </template>
+                                                                <input type="number" step="0.01" x-model.number="selectedMap[item.id]" :disabled="!isSelected(item.id)" class="w-full bg-white border border-slate-200 rounded px-2 py-1 text-right font-mono font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-xs disabled:bg-transparent disabled:border-transparent disabled:text-slate-300" :max="item.saldo_pendiente">
+                                                                <template x-if="isSelected(item.id)"><div><input type="hidden" :name="`detalles[${index}][factura_id]`" :value="item.id"><input type="hidden" :name="`detalles[${index}][abono]`" :value="selectedMap[item.id]"></div></template>
                                                             </td>
                                                         </tr>
                                                     </template>
@@ -203,8 +173,8 @@
                                             </table>
                                         </div>
                                     </div>
-                                    <div class="mt-4 text-center" x-show="meta.current_page < meta.last_page"><button type="button" @click="loadMore()" class="btn-secondary text-xs w-full py-3 border-dashed">Cargar más...</button></div>
-                                    <div x-show="cartera.length === 0 && !isLoading" class="text-center py-10 text-slate-400 text-sm">No hay cuentas pendientes.</div>
+                                    <div class="mt-4 text-center" x-show="meta.current_page < meta.last_page"><button type="button" @click="loadMore()" class="btn-secondary text-xs w-full py-3 border-dashed text-slate-500 hover:text-indigo-600 hover:border-indigo-300"><span x-show="!isLoading">Cargar más cuentas...</span><span x-show="isLoading">Cargando...</span></button></div>
+                                    <div x-show="cartera.length === 0 && !isLoading" class="text-center py-10 text-slate-400 text-sm">No hay cuentas pendientes con estos filtros.</div>
                                 </div>
                             </div>
 

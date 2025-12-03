@@ -8,12 +8,12 @@
 @endsection
 
 @section('content')
-<div class="flex flex-col gap-6" 
+<div class="flex flex-col gap-6 w-full" 
      x-data="carteraEdsManager()" 
      @open-detail-eds.window="openDetail($event.detail.eds_id, $event.detail.cliente_id, $event.detail.eds_name, $event.detail.cliente_name)">
 
     <!-- TOOLBAR -->
-    <div class="flex flex-col md:flex-row justify-between gap-4">
+    <div class="flex flex-col md:flex-row justify-between gap-4 w-full">
         <div class="relative w-full md:max-w-md group">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 transition-colors group-focus-within:text-indigo-500">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -24,7 +24,7 @@
                 x-model="search" 
                 @input.debounce.300ms="performSearch"
                 placeholder="Buscar Estación o Cliente..." 
-                class="input-pill !pl-12 pr-10 bg-white h-12 md:h-10 text-base md:text-sm shadow-sm border-slate-200 focus:border-indigo-500"
+                class="input-pill !pl-12 pr-10 bg-white h-12 md:h-10 text-base md:text-sm shadow-sm border-slate-200 focus:border-indigo-500 w-full"
             >
             
             <div x-show="isSearching" class="absolute inset-y-0 right-0 pr-4 flex items-center" style="display: none;">
@@ -49,78 +49,72 @@
         @include('cartera_eds.partials.table', ['items' => $items, 'grand_total' => $grand_total])
     </div>
 
-    <!-- ========================================== -->
-    <!-- PANEL LATERAL (DRAWER)                 -->
-    <!-- ========================================== -->
+    <!-- PANEL LATERAL (DRAWER OPTIMIZADO) -->
     <div class="relative z-50" aria-labelledby="slide-over-title" role="dialog" aria-modal="true" x-show="isOpen" style="display: none;">
-        <div x-show="isOpen" x-transition.opacity class="fixed inset-0 bg-slate-900/75 transition-opacity backdrop-blur-sm" @click="isOpen = false"></div>
-        
+        <div x-show="isOpen" x-transition.opacity class="fixed inset-0 bg-slate-900/60 transition-opacity" @click="isOpen = false"></div>
+
         <div class="fixed inset-0 overflow-hidden pointer-events-none">
             <div class="absolute inset-0 overflow-hidden">
                 <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-0 md:pl-10">
+                    
                     <div x-show="isOpen" 
-                         x-transition:enter="transform transition ease-in-out duration-500 sm:duration-700"
-                         x-transition:enter-start="translate-x-full"
-                         x-transition:enter-end="translate-x-0"
-                         x-transition:leave="transform transition ease-in-out duration-500 sm:duration-700"
-                         x-transition:leave-start="translate-x-0"
-                         x-transition:leave-end="translate-x-full"
+                         x-transition:enter="transform transition ease-in-out duration-300" 
+                         x-transition:enter-start="translate-x-full" 
+                         x-transition:enter-end="translate-x-0" 
+                         x-transition:leave="transform transition ease-in-out duration-300" 
+                         x-transition:leave-start="translate-x-0" 
+                         x-transition:leave-end="translate-x-full" 
                          class="pointer-events-auto w-screen max-w-6xl">
                         
-                        {{-- FORMULARIO DE RECAUDO --}}
-                        <form action="{{ route('abonos.store') }}" method="POST" class="flex h-full flex-col overflow-y-scroll bg-white shadow-2xl" @submit.prevent="submitPayment">
+                        <form action="{{ route('abonos.store') }}" method="POST" class="flex h-full flex-col bg-white shadow-2xl" @submit.prevent="submitPayment">
                             @csrf
                             <input type="hidden" name="cliente_id" x-model="clienteId">
 
                             <!-- Header Panel -->
-                            <div class="px-4 sm:px-6 py-6 bg-indigo-600 text-white shadow-md relative z-10 flex-none">
+                            <div class="px-4 sm:px-6 py-4 bg-indigo-600 text-white shadow-md relative z-10 flex-none">
                                 <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        <h2 class="text-lg font-bold leading-6" id="slide-over-title">
+                                    <div class="flex-1 overflow-hidden">
+                                        <h2 class="text-lg font-bold leading-6 truncate" id="slide-over-title">
                                             <span class="block opacity-75 text-xs font-normal uppercase tracking-wide" x-text="edsNombre"></span>
                                             <span x-text="clienteNombre"></span>
                                         </h2>
-                                        <div class="flex items-center gap-4 mt-2">
-                                            <p class="text-indigo-200 text-xs">Cartera pendiente en esta estación.</p>
+                                        <div class="flex flex-wrap items-center gap-3 mt-2">
+                                            <p class="text-indigo-200 text-xs hidden sm:block">Cartera pendiente.</p>
                                             
                                             {{-- BOTÓN EXPORTAR INDIVIDUAL --}}
-                                            <a :href="exportUrl" target="_blank" class="inline-flex items-center gap-1 text-[10px] bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3 py-1.5 rounded-lg transition-colors font-bold shadow-sm">
+                                            <a :href="exportUrl" target="_blank" class="inline-flex items-center gap-1 text-[10px] bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3 py-1.5 rounded-lg transition-colors font-bold shadow-sm whitespace-nowrap">
                                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                Exportar Estado de Cuenta
+                                                Exportar Detalle
                                             </a>
                                         </div>
                                     </div>
-                                    <button type="button" @click="isOpen = false" class="rounded-md text-indigo-200 hover:text-white focus:outline-none ml-3">
+                                    <button type="button" @click="isOpen = false" class="rounded-md text-indigo-200 hover:text-white focus:outline-none ml-3 p-2">
                                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                     </button>
                                 </div>
                                 
-                                <!-- TOTALIZADOR -->
-                                <div class="mt-6 flex flex-col sm:flex-row items-center justify-between bg-indigo-700/50 p-4 rounded-xl border border-indigo-500/30 gap-4">
-                                    <div class="w-full sm:w-auto">
-                                        <span class="text-[10px] uppercase font-bold text-indigo-200 tracking-wider block">Total a Abonar</span>
-                                        <div class="text-3xl font-mono font-bold" x-text="formatMoney(totalAbono)">$0.00</div>
+                                <!-- TOTALIZADOR Y PAGO -->
+                                <div class="mt-4 bg-indigo-700/50 p-3 rounded-xl border border-indigo-500/30 flex flex-col gap-3">
+                                    <div class="flex justify-between items-end border-b border-indigo-500/30 pb-2">
+                                        <span class="text-[10px] uppercase font-bold text-indigo-200 tracking-wider">Total a Abonar</span>
+                                        <div class="text-2xl font-mono font-bold" x-text="formatMoney(totalAbono)">$0.00</div>
                                     </div>
                                     
-                                    <div class="flex gap-2 w-full sm:w-auto">
-                                        <input type="date" name="fecha" value="{{ date('Y-m-d') }}" class="input-pill text-xs py-2 h-9 bg-indigo-800/50 border-indigo-500 text-white placeholder-indigo-300 focus:ring-white/20" required>
-                                        <select name="metodo_pago" class="input-pill text-xs py-2 h-9 bg-indigo-800/50 border-indigo-500 text-white focus:ring-white/20 appearance-none" required>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <input type="date" name="fecha" value="{{ date('Y-m-d') }}" class="input-pill text-xs py-1.5 h-8 bg-indigo-800/50 border-indigo-500 text-white placeholder-indigo-300 focus:ring-white/20" required>
+                                        <select name="metodo_pago" class="input-pill text-xs py-1.5 h-8 bg-indigo-800/50 border-indigo-500 text-white focus:ring-white/20 appearance-none" required>
                                             <option value="Transferencia Bancaria" class="text-slate-800">Transferencia</option>
                                             <option value="Efectivo" class="text-slate-800">Efectivo</option>
                                             <option value="Cheque" class="text-slate-800">Cheque</option>
                                         </select>
+                                        <input type="text" name="referencia" class="input-pill text-xs py-1.5 h-8 bg-indigo-800/30 border-transparent text-white placeholder-indigo-300 focus:ring-white/10" placeholder="Ref / Recibo *" required>
+                                        <input type="text" name="notas" class="input-pill text-xs py-1.5 h-8 bg-indigo-800/30 border-transparent text-white placeholder-indigo-300 focus:ring-white/10" placeholder="Notas...">
                                     </div>
-                                </div>
-                                
-                                <!-- Campos Extra (Ref/Notas) -->
-                                <div class="mt-2 grid grid-cols-2 gap-2">
-                                    <input type="text" name="referencia" class="input-pill text-xs py-1.5 h-8 bg-indigo-800/30 border-transparent text-white placeholder-indigo-300 focus:ring-white/10" placeholder="Referencia / Recibo">
-                                    <input type="text" name="notas" class="input-pill text-xs py-1.5 h-8 bg-indigo-800/30 border-transparent text-white placeholder-indigo-300 focus:ring-white/10" placeholder="Notas...">
                                 </div>
                             </div>
 
-                            <!-- Body -->
-                            <div class="relative flex-1 bg-slate-50 flex flex-col min-h-0">
+                            <!-- Body Panel -->
+                            <div class="flex-1 overflow-y-auto bg-slate-50 relative flex flex-col">
                                 
                                 <!-- Filtros Internos -->
                                 <div class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 shadow-sm flex-none">
@@ -128,27 +122,24 @@
                                         <button type="button" @click="toggleSelectAll" class="text-xs text-indigo-600 font-bold hover:underline flex items-center gap-1">
                                             <span x-text="allSelected ? 'Desmarcar Todo' : 'Seleccionar Todo Visible'"></span>
                                         </button>
-
                                         <button type="button" @click="showFilters = !showFilters" class="text-xs flex items-center gap-1 text-slate-500 hover:text-indigo-600 bg-slate-100 px-3 py-1.5 rounded-lg transition-colors">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                                             Filtros
                                         </button>
                                     </div>
                                     <div x-show="showFilters" x-transition class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 pt-3 border-t border-slate-100">
-                                        <div class="col-span-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Buscar (Factura)</label><input type="text" x-model="filters.q_factura" @input.debounce.500ms="reloadCartera()" class="input-pill text-xs py-1.5 mt-1" placeholder="# Factura"></div>
-                                        <div class="col-span-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Corte Desde</label><input type="date" x-model="filters.corte_desde" @change="reloadCartera()" class="input-pill text-xs py-1.5 mt-1"></div>
-                                        <div class="col-span-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Corte Hasta</label><input type="date" x-model="filters.corte_hasta" @change="reloadCartera()" class="input-pill text-xs py-1.5 mt-1"></div>
+                                        <div class="col-span-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Buscar</label><input type="text" x-model="filters.q_factura" @input.debounce.500ms="reloadCartera()" class="input-pill text-xs py-1.5 mt-1" placeholder="# Factura"></div>
+                                        <div class="col-span-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Desde</label><input type="date" x-model="filters.corte_desde" @change="reloadCartera()" class="input-pill text-xs py-1.5 mt-1"></div>
+                                        <div class="col-span-1"><label class="text-[10px] font-bold text-slate-400 uppercase">Hasta</label><input type="date" x-model="filters.corte_hasta" @change="reloadCartera()" class="input-pill text-xs py-1.5 mt-1"></div>
                                     </div>
                                 </div>
 
-                                <!-- Tabla Scrollable (CORRECCIÓN AQUÍ: overflow-x-auto) -->
-                                <div class="flex-1 overflow-y-auto px-4 py-4 relative">
-                                    <div x-show="isLoading" class="absolute inset-0 bg-white/80 z-10 flex items-center justify-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
+                                <!-- Tabla -->
+                                <div class="p-4 pb-20">
+                                    <div x-show="isLoading" class="flex justify-center py-10"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
                                     
                                     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                        {{-- CORRECCIÓN: overflow-x-auto para permitir scroll horizontal en móviles --}}
-                                        <div class="overflow-x-auto">
-                                            {{-- CORRECCIÓN: min-w-[800px] para forzar ancho y que no se aplasten las columnas --}}
+                                        <div class="overflow-x-auto w-full">
                                             <table class="w-full min-w-[800px] text-left text-xs">
                                                 <thead class="bg-slate-50 border-b border-slate-200 font-bold text-slate-500 uppercase">
                                                     <tr>
@@ -172,30 +163,19 @@
                                                             <td class="px-4 py-3 text-center" @click.stop>
                                                                 <input type="checkbox" :checked="isSelected(item.id)" @change="toggleSelection(item)" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer">
                                                             </td>
-                                                            
-                                                            <td class="px-4 py-3">
-                                                                <div class="font-bold font-mono text-indigo-900 text-sm" x-text="'#' + item.consecutivo"></div>
-                                                            </td>
-                                                            
-                                                            <td class="px-4 py-3 text-center whitespace-nowrap">
-                                                                <div class="text-[10px] font-mono text-slate-600" x-text="item.corte_desde + ' - ' + item.corte_hasta"></div>
-                                                                <div class="text-[9px] text-red-400 font-medium" x-text="'Vence: ' + item.fecha_vencimiento"></div>
-                                                            </td>
-                                                            
+                                                            <td class="px-4 py-3"><div class="font-bold font-mono text-indigo-900 text-sm" x-text="'#' + item.consecutivo"></div></td>
+                                                            <td class="px-4 py-3 text-center whitespace-nowrap"><div class="text-[10px] font-mono text-slate-600" x-text="item.corte_desde + ' - ' + item.corte_hasta"></div><div class="text-[9px] text-red-400 font-medium" x-text="'Vence: ' + item.fecha_vencimiento"></div></td>
                                                             <td class="px-4 py-3 text-center font-bold" :class="item.dias_vencidos > 0 ? 'text-red-600' : 'text-emerald-600'" x-text="item.dias_vencidos > 0 ? item.dias_vencidos : 'OK'"></td>
-                                                            
                                                             <td class="px-4 py-3 text-right text-slate-500" x-text="formatMoney(item.valor_total)"></td>
                                                             <td class="px-4 py-3 text-right text-red-500 font-medium" x-text="item.descuento > 0 ? '-' + formatMoney(item.descuento) : '--'"></td>
                                                             <td class="px-4 py-3 text-right text-emerald-600 font-medium" x-text="item.abonos_previos > 0 ? formatMoney(item.abonos_previos) : '--'"></td>
                                                             <td class="px-4 py-3 text-right font-black text-slate-800 bg-slate-50/50 border-l border-slate-100" x-text="formatMoney(item.saldo_pendiente)"></td>
-                                                            
                                                             <td class="px-4 py-2 text-right bg-indigo-50/30 border-l border-indigo-100" @click.stop>
                                                                 <input type="number" step="0.01" 
                                                                        x-model.number="selectedMap[item.id]" 
                                                                        :disabled="!isSelected(item.id)"
                                                                        class="w-full bg-white border border-slate-200 rounded px-2 py-1 text-right font-mono font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-xs disabled:bg-transparent disabled:border-transparent disabled:text-slate-300"
                                                                        :max="item.saldo_pendiente">
-                                                                
                                                                 <template x-if="isSelected(item.id)">
                                                                     <div>
                                                                         <input type="hidden" :name="`detalles[${index}][factura_id]`" :value="item.id">
@@ -209,15 +189,22 @@
                                             </table>
                                         </div>
                                     </div>
-                                    <div class="mt-4 text-center" x-show="meta.current_page < meta.last_page"><button type="button" @click="loadMore()" class="btn-secondary text-xs w-full py-3 border-dashed">Cargar más...</button></div>
-                                    <div x-show="cartera.length === 0 && !isLoading" class="text-center py-10 text-slate-400 text-sm">No hay cuentas pendientes.</div>
+                                    <div class="mt-4 text-center" x-show="meta.current_page < meta.last_page">
+                                        <button @click="loadMore()" class="btn-secondary text-xs w-full py-3 border-dashed">Cargar más...</button>
+                                    </div>
+                                    <div x-show="cartera.length === 0 && !isLoading" class="text-center py-10 text-slate-400 text-sm">
+                                        No hay cuentas pendientes.
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <!-- Footer -->
-                            <div class="flex-none border-t border-slate-200 px-4 py-5 sm:px-6 bg-white flex justify-end gap-3 sticky bottom-0 z-20">
+
+                            <!-- Footer Fijo -->
+                            <div class="flex-none border-t border-slate-200 px-4 py-4 bg-white flex justify-end gap-3 sticky bottom-0 z-30 shadow-inner">
                                 <button type="button" @click="isOpen = false" class="btn-secondary">Cancelar</button>
-                                <button type="submit" class="btn-primary" :disabled="totalAbono <= 0"><span class="mr-1">Registrar Abono de</span><span x-text="formatMoney(totalAbono)"></span></button>
+                                <button type="submit" class="btn-primary" :disabled="totalAbono <= 0">
+                                    <span class="mr-1">Registrar Abono de</span>
+                                    <span x-text="formatMoney(totalAbono)"></span>
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -234,13 +221,16 @@
             isSearching: false,
             isOpen: false,
             isLoading: false,
+            
+            // CORRECCIÓN: Inicializar showFilters para evitar el error de ReferenceError
             showFilters: false,
+
             edsId: null,
             edsNombre: '',
             clienteId: null,
             clienteNombre: '',
             cartera: [],
-            selectedMap: {},
+            selectedMap: {}, 
             allSelected: false,
             meta: { current_page: 1, last_page: 1, total: 0, total_deuda: 0 },
             filters: { q_factura: '', corte_desde: '', corte_hasta: '' },
@@ -264,7 +254,7 @@
             },
 
             openDetail(eds_id, cliente_id, eds_name, cliente_name) {
-                this.edsId = eds_id; 
+                this.edsId = eds_id;
                 this.clienteId = cliente_id;
                 this.edsNombre = eds_name;
                 this.clienteNombre = cliente_name;
@@ -277,7 +267,7 @@
             },
 
             reloadCartera() { this.cartera = []; this.loadCartera(1); },
-            loadMore() { if (this.meta.current_page < this.meta.last_page) this.loadCartera(this.meta.current_page + 1); },
+            loadMore() { this.loadCartera(this.meta.current_page + 1); },
             
             loadCartera(page) {
                 this.isLoading = true;
@@ -292,29 +282,17 @@
             },
 
             isSelected(id) { return this.selectedMap.hasOwnProperty(id); },
-            
             toggleSelection(item) {
-                if (this.isSelected(item.id)) { 
-                    delete this.selectedMap[item.id]; 
-                    this.allSelected = false; 
-                } else { 
-                    this.selectedMap[item.id] = parseFloat(item.saldo_pendiente); 
-                }
+                if (this.isSelected(item.id)) { delete this.selectedMap[item.id]; } 
+                else { this.selectedMap[item.id] = parseFloat(item.saldo_pendiente); }
                 this.selectedMap = { ...this.selectedMap };
             },
-            
             toggleSelectAll() {
                 this.allSelected = !this.allSelected;
-                if (this.allSelected) {
-                    this.cartera.forEach(item => {
-                        this.selectedMap[item.id] = parseFloat(item.saldo_pendiente);
-                    });
-                } else {
-                    this.selectedMap = {};
-                }
+                if (this.allSelected) { this.cartera.forEach(item => { this.selectedMap[item.id] = parseFloat(item.saldo_pendiente); }); } 
+                else { this.selectedMap = {}; }
                 this.selectedMap = { ...this.selectedMap };
             },
-
             updateAmount(id, value) {
                 if (this.isSelected(id)) { this.selectedMap[id] = parseFloat(value); this.selectedMap = { ...this.selectedMap }; }
             },
