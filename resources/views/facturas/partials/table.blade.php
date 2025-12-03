@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-4 w-full">
-    <div class="w-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
         
         <!-- MOBILE CARDS -->
         <div class="md:hidden space-y-3 p-4">
@@ -12,8 +12,12 @@
                     <div class="pl-2">
                         <div class="flex justify-between items-start mb-2">
                             <div class="overflow-hidden pr-2 flex-1">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate block">{{ $f->eds->nombre }}</span>
-                                <h3 class="font-bold text-slate-800 text-sm truncate block">{{ $f->cliente->razon_social }}</h3>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate block">
+                                    {{ $f->eds->nombre }}
+                                </span>
+                                <h3 class="font-bold text-slate-800 text-sm truncate block">
+                                    {{ $f->cliente->razon_social }}
+                                </h3>
                                 
                                 <div class="flex items-center gap-1 mt-1 text-slate-400">
                                     <svg class="w-3 h-3 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -25,7 +29,9 @@
                                 </div>
                             </div>
                             <div class="text-right flex-shrink-0 pl-2">
-                                <span class="block font-mono font-bold text-indigo-600">#{{ $f->consecutivo }}</span>
+                                <span class="block font-mono font-bold text-indigo-600">
+                                    #{{ $f->consecutivo }}
+                                </span>
                             </div>
                         </div>
 
@@ -52,7 +58,8 @@
                                 <a href="{{ route('facturas.edit', $f) }}" class="p-2 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold flex items-center gap-1">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                                    </svg> Editar
+                                    </svg> 
+                                    Editar
                                 </a>
                                 @if($f->saldo_pendiente == $f->valor_total)
                                     <form action="{{ route('facturas.destroy', $f) }}" method="POST" x-on:submit.prevent="$dispatch('confirm-action', { form: $el, title: 'Anular Cuenta', message: '¿Anular la cuenta #{{ $f->consecutivo }}?' })">
@@ -60,7 +67,8 @@
                                         <button class="p-2 bg-red-50 text-red-600 rounded-lg text-xs font-bold flex items-center gap-1">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg> Anular
+                                            </svg> 
+                                            Anular
                                         </button>
                                     </form>
                                 @endif
@@ -74,8 +82,8 @@
         </div>
 
         <!-- DESKTOP TABLE -->
-        <div class="hidden md:block w-full overflow-x-auto">
-            <table class="w-full min-w-[1000px] text-left border-collapse table-fixed">
+        <div class="hidden md:block overflow-x-auto w-full">
+            <table class="w-full min-w-full text-left border-collapse table-fixed">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50/50 text-[11px] uppercase tracking-widest text-slate-500 font-bold">
                         <th class="px-6 py-4 w-2/12">Cuenta / Acciones</th>
@@ -131,10 +139,12 @@
                             <td class="px-6 py-3">
                                 <div class="flex flex-col gap-1.5 items-center">
                                     <div class="text-[10px] text-slate-500 flex items-center gap-1">
-                                        <span class="uppercase text-[9px] text-slate-400">Emi:</span> {{ $f->fecha_emision->format('d/m/Y') }}
+                                        <span class="uppercase text-[9px] text-slate-400">Emi:</span> 
+                                        {{ $f->fecha_emision->format('d/m/Y') }}
                                     </div>
                                     <div class="text-[10px] font-medium flex items-center gap-1 {{ $f->dias_vencidos > 0 ? 'text-red-600' : 'text-slate-600' }}">
-                                        <span class="uppercase text-[9px] text-slate-400">Vence:</span> {{ $f->fecha_vencimiento->format('d/m/Y') }}
+                                        <span class="uppercase text-[9px] text-slate-400">Vence:</span> 
+                                        {{ $f->fecha_vencimiento->format('d/m/Y') }}
                                     </div>
                                     <div class="text-[9px] text-indigo-500 flex items-center gap-1 mt-0.5">
                                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
