@@ -3,16 +3,16 @@
     {{-- TOTALIZADOR DINÁMICO (Visible en ambas vistas) --}}
     <div class="flex justify-end w-full">
         <div class="bg-indigo-600 text-white px-4 py-2 rounded-xl shadow-sm flex items-center gap-3 animate-enter transition-all duration-300">
-            <div class="text-[10px] font-bold uppercase opacity-75 text-right leading-tight">Total Cartera<br>Filtrada</div>
+            <div class="text-[10px] font-bold uppercase opacity-75 text-right leading-tight">
+                Total Cartera<br>Filtrada
+            </div>
             <div class="text-xl font-mono font-bold border-l border-indigo-400 pl-3">
                 ${{ number_format($grand_total, 0, ',', '.') }}
             </div>
         </div>
     </div>
 
-    {{-- ============================================================== --}}
-    {{-- VISTA MÓVIL (CARDS) - Se muestra solo en pantallas pequeñas    --}}
-    {{-- ============================================================== --}}
+    {{-- VISTA MÓVIL (CARDS) --}}
     <div class="md:hidden space-y-3">
         @forelse($clientes as $c)
             <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden active:scale-[0.98] transition-transform cursor-pointer"
@@ -24,19 +24,19 @@
                         <p class="text-xs text-slate-500 font-mono mt-0.5">{{ $c->tipo_id }} {{ $c->documento }}</p>
                     </div>
                     <div class="text-right">
-                        <span class="block font-mono font-bold text-lg text-slate-800">${{ number_format($c->total_deuda, 0, ',', '.') }}</span>
+                        <span class="block font-mono font-bold text-lg text-slate-800">
+                            ${{ number_format($c->total_deuda, 0, ',', '.') }}
+                        </span>
                         <span class="text-[10px] text-slate-400 uppercase font-bold">Deuda Total</span>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between border-t border-slate-50 pt-3 mt-2">
                     <div class="flex gap-2">
-                        {{-- Badge Cuentas --}}
                         <span class="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 text-slate-600 text-[10px] font-medium border border-slate-100">
                             {{ $c->cuentas_activas }} Cuentas
                         </span>
 
-                        {{-- Badge Mora --}}
                         @php $mora = $c->max_dias_mora; @endphp
                         <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold 
                             {{ $mora > 60 ? 'bg-red-50 text-red-600 border border-red-100' : ($mora > 30 ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100') }}">
@@ -44,9 +44,10 @@
                         </span>
                     </div>
                     
-                    {{-- Icono Acción --}}
                     <div class="bg-indigo-50 p-1.5 rounded-lg text-indigo-600">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
                     </div>
                 </div>
             </div>
@@ -57,9 +58,7 @@
         @endforelse
     </div>
 
-    {{-- ============================================================== --}}
-    {{-- VISTA ESCRITORIO (TABLA) - Se muestra en pantallas medianas+   --}}
-    {{-- ============================================================== --}}
+    {{-- VISTA ESCRITORIO (TABLA) --}}
     <div class="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
         <div class="overflow-x-auto w-full">
             <table class="w-full min-w-full text-left border-collapse table-fixed">
@@ -106,19 +105,24 @@
                             </td>
                             <td class="px-6 py-4 text-right align-middle">
                                 <button class="p-2 rounded-full hover:bg-indigo-50 text-indigo-600 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
                                 </button>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="text-center py-16 text-slate-400 text-sm">No se encontraron clientes con deuda pendiente que coincidan con la búsqueda.</td></tr>
+                        <tr>
+                            <td colspan="5" class="text-center py-16 text-slate-400 text-sm">
+                                No se encontraron clientes con deuda pendiente que coincidan con la búsqueda.
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 
-    {{-- Paginación (Visible en ambos modos) --}}
     @if($clientes->hasPages())
         <div class="px-1 pt-2 pb-4">
             {{ $clientes->withQueryString()->links() }}
