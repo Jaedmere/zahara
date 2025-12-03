@@ -1,10 +1,9 @@
 <div class="flex flex-col gap-4 w-full">
-    
-    {{-- TOTALIZADOR DINÁMICO (Visible en ambas vistas) --}}
+    <!-- TOTALIZADOR (mismo estilo) -->
     <div class="flex justify-end w-full">
-        <div class="bg-indigo-600 text-white px-4 py-2 rounded-xl shadow-sm flex items-center gap-3 animate-enter transition-all duration-300">
+        <div class="bg-indigo-600 text-white px-4 py-2 rounded-xl shadow-sm flex items-center gap-3 animate-enter">
             <div class="text-[10px] font-bold uppercase opacity-75 text-right leading-tight">
-                Total Cartera<br>Filtrada
+                Total Cartera<br>Visible
             </div>
             <div class="text-xl font-mono font-bold border-l border-indigo-400 pl-3">
                 ${{ number_format($grand_total, 0, ',', '.') }}
@@ -12,55 +11,57 @@
         </div>
     </div>
 
-    {{-- VISTA MÓVIL (CARDS) --}}
-    <div class="md:hidden space-y-3">
-        @forelse($clientes as $c)
-            <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden active:scale-[0.98] transition-transform cursor-pointer"
-                 onclick="window.dispatchEvent(new CustomEvent('open-detail-custom', { detail: { id: {{ $c->id }}, name: '{{ addslashes($c->razon_social) }}' } }))">
-                
-                <div class="flex justify-between items-start mb-2">
-                    <div class="flex-1 min-w-0 pr-2">
-                        <h3 class="font-bold text-slate-800 text-sm truncate">{{ $c->razon_social }}</h3>
-                        <p class="text-xs text-slate-500 font-mono mt-0.5">{{ $c->tipo_id }} {{ $c->documento }}</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="block font-mono font-bold text-lg text-slate-800">
-                            ${{ number_format($c->total_deuda, 0, ',', '.') }}
-                        </span>
-                        <span class="text-[10px] text-slate-400 uppercase font-bold">Deuda Total</span>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between border-t border-slate-50 pt-3 mt-2">
-                    <div class="flex gap-2">
-                        <span class="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 text-slate-600 text-[10px] font-medium border border-slate-100">
-                            {{ $c->cuentas_activas }} Cuentas
-                        </span>
-
-                        @php $mora = $c->max_dias_mora; @endphp
-                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold 
-                            {{ $mora > 60 ? 'bg-red-50 text-red-600 border border-red-100' : ($mora > 30 ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100') }}">
-                            @if($mora > 0) {{ $mora }} días mora @else Al día @endif
-                        </span>
-                    </div>
+    <!-- CONTENEDOR BLANCO UNIFICADO (cards + tabla) -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
+        
+        {{-- VISTA MÓVIL (CARDS) --}}
+        <div class="md:hidden space-y-3 p-4">
+            @forelse($clientes as $c)
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm relative overflow-hidden active:scale-[0.98] transition-transform cursor-pointer"
+                     onclick="window.dispatchEvent(new CustomEvent('open-detail-custom', { detail: { id: {{ $c->id }}, name: '{{ addslashes($c->razon_social) }}' } }))">
                     
-                    <div class="bg-indigo-50 p-1.5 rounded-lg text-indigo-600">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex-1 min-w-0 pr-2">
+                            <h3 class="font-bold text-slate-800 text-sm truncate">{{ $c->razon_social }}</h3>
+                            <p class="text-xs text-slate-500 font-mono mt-0.5">{{ $c->tipo_id }} {{ $c->documento }}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="block font-mono font-bold text-lg text-slate-800">
+                                ${{ number_format($c->total_deuda, 0, ',', '.') }}
+                            </span>
+                            <span class="text-[10px] text-slate-400 uppercase font-bold">Deuda Total</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between border-t border-slate-50 pt-3 mt-2">
+                        <div class="flex gap-2">
+                            <span class="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 text-slate-600 text-[10px] font-medium border border-slate-100">
+                                {{ $c->cuentas_activas }} Cuentas
+                            </span>
+
+                            @php $mora = $c->max_dias_mora; @endphp
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold 
+                                {{ $mora > 60 ? 'bg-red-50 text-red-600 border border-red-100' : ($mora > 30 ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100') }}">
+                                @if($mora > 0) {{ $mora }} días mora @else Al día @endif
+                            </span>
+                        </div>
+                        
+                        <div class="bg-indigo-50 p-1.5 rounded-lg text-indigo-600">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
-            </div>
-        @empty
-            <div class="text-center py-10 text-slate-400 text-sm bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                No se encontraron clientes con deuda.
-            </div>
-        @endforelse
-    </div>
+            @empty
+                <div class="text-center py-10 text-slate-400 text-sm bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    No se encontraron clientes con deuda.
+                </div>
+            @endforelse
+        </div>
 
-    {{-- VISTA ESCRITORIO (TABLA) --}}
-    <div class="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
-        <div class="overflow-x-auto w-full">
+        {{-- VISTA ESCRITORIO (TABLA) --}}
+        <div class="hidden md:block overflow-x-auto w-full">
             <table class="w-full min-w-full text-left border-collapse table-fixed">
                 <thead class="bg-slate-50 text-[10px] uppercase tracking-widest text-slate-500 font-bold border-b border-slate-200">
                     <tr>
@@ -121,11 +122,11 @@
                 </tbody>
             </table>
         </div>
-    </div>
 
-    @if($clientes->hasPages())
-        <div class="px-1 pt-2 pb-4">
-            {{ $clientes->withQueryString()->links() }}
-        </div>
-    @endif
+        @if($clientes->hasPages())
+            <div class="px-4 py-3 border-t border-slate-200 bg-slate-50/50">
+                {{ $clientes->withQueryString()->links() }}
+            </div>
+        @endif
+    </div>
 </div>
