@@ -1,3 +1,4 @@
+{{-- resources/views/cartera_cuentas/index.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Consolidado por Cuenta - Zahara')
@@ -60,7 +61,7 @@
                class="bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-50 px-4 py-2 rounded-xl shadow-sm flex items-center gap-2 h-10 transition-colors font-medium text-sm"
                title="Descargar Reporte">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
                 </svg>
                 <span class="hidden md:inline">Excel</span>
             </a>
@@ -175,9 +176,7 @@
                                                     <span class="absolute left-3 top-2 text-slate-400 font-bold">$</span>
                                                     <input type="number" step="0.01" 
                                                            x-model.number="selectedMap[item.id]" 
-                                                           class="w-full bg-indigo-50 border border-indigo-200 rounded-xl pl-7 pr-3 py-2 font-mono font-bold text-indigo-9
-
-00 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg" 
+                                                           class="w-full bg-indigo-50 border border-indigo-200 rounded-xl pl-7 pr-3 py-2 font-mono font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg" 
                                                            :max="item.saldo_pendiente">
                                                 </div>
                                                 <p class="text-[10px] text-slate-400 mt-1 text-right">
@@ -228,12 +227,10 @@
                 return url;
             },
 
-            // AJUSTADO: sin "search=null" y manejando loader
             performSearch() {
                 this.isSearching = true;
 
                 const params = new URLSearchParams();
-                params.set('ajax', '1');
 
                 if (this.search && this.search.trim() !== '') {
                     params.set('search', this.search.trim());
@@ -243,7 +240,11 @@
                     params.set('eds_id', this.filters.eds_id);
                 }
 
-                const url = `${window.location.pathname}?${params.toString()}`;
+                const queryString = params.toString();
+                const url = queryString 
+                    ? `${window.location.pathname}?${queryString}` 
+                    : window.location.pathname;
+
                 window.history.replaceState({}, '', url);
 
                 fetch(url, { 

@@ -11,8 +11,6 @@ class Cliente extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'clientes';
-
     protected $fillable = [
         'tipo_id',
         'documento',
@@ -20,27 +18,17 @@ class Cliente extends Model
         'email',
         'telefono',
         'direccion',
-        'estado', // 'activo', 'bloqueado'
+        'estado', // activo, bloqueado
         'notas'
     ];
 
     /**
      * MUTADORES
      */
-    
-    // Convertir Razón Social a Title Case automáticamente
     protected function razonSocial(): Attribute
     {
         return Attribute::make(
-            set: fn (string $value) => Str::title($value),
-        );
-    }
-
-    // Convertir Email a minúsculas siempre
-    protected function email(): Attribute
-    {
-        return Attribute::make(
-            set: fn (?string $value) => $value ? Str::lower($value) : null,
+            set: fn (string $value) => Str::upper($value),
         );
     }
 
@@ -48,15 +36,27 @@ class Cliente extends Model
      * RELACIONES
      */
 
-    public function eds() {
-        return $this->belongsToMany(EDS::class, 'clientes_eds', 'cliente_id', 'eds_id');
-    }
-
-    public function facturas() {
+    // Relación con Facturas (Un cliente tiene muchas facturas)
+    public function facturas()
+    {
         return $this->hasMany(Factura::class);
     }
 
-    public function abonos() {
+    // Relación con Abonos (Un cliente tiene muchos abonos/recibos)
+    public function abonos()
+    {
         return $this->hasMany(Abono::class);
+    }
+
+    // Relación con EDS (Asignación muchos a muchos)
+    public function eds()
+    {
+        return $this->belongsToMany(EDS::class, 'clientes_eds', 'cliente_id', 'eds_id');
+    }
+
+    // NUEVA RELACIÓN: SEGUIMIENTOS (CRM)
+    public function seguimientos()
+    {
+        return $this->hasMany(Seguimiento::class);
     }
 }
