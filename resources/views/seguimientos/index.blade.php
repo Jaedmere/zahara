@@ -125,7 +125,7 @@
          x-show="isOpen"
          style="display: none;">
 
-        {{-- FONDO OSCURO: AHORA CIERRA Y RECARGA --}}
+        {{-- FONDO OSCURO: cierra y recarga --}}
         <div x-show="isOpen"
              x-transition.opacity
              class="fixed inset-0 bg-slate-900/75 transition-opacity backdrop-blur-sm"
@@ -233,7 +233,7 @@
                                 </div>
 
                                 {{-- DERECHA: GESTIÓN --}}
-                                <div class="w-full md:w-1/2 flex flex-col bg.white h-2/3 md:h-auto border-t md:border-t-0 bg-white">
+                                <div class="w-full md:w-1/2 flex flex-col h-2/3 md:h-auto border-t md:border-t-0 bg-white">
                                     <div class="p-6 border-b border-slate-200 bg-indigo-50/30 flex-none">
                                         <div class="flex justify-between items-center mb-2">
                                             <h3 class="font-bold text-xs uppercase"
@@ -298,18 +298,15 @@
                                                 <div class="relative flex items-start group">
                                                     {{-- CÍRCULO DE ESTADO --}}
                                                     <div class="absolute left-0 h-10 w-10 flex items-center justify-center rounded-full bg-white border-4 transition-colors z-10"
-                                                         :class="
-                                                            item.estado === 'pendiente'
-                                                                ? (new Date(item.fecha_compromiso) < new Date()
-                                                                    ? 'border-red-100'
-                                                                    : 'border-amber-100')
-                                                                : (item.estado === 'cancelado'
-                                                                    ? 'border-slate-200'
-                                                                    : 'border-emerald-100')
-                                                         ">
-                                                        {{-- PENDIENTE: botón para marcar cumplido --}}
-                                                        <template x-if="item.estado === 'pendiente'">
-                                                            <button @click="confirmAction('check', item.id)"
+                                                         :class="{
+                                                            'border-amber-200'  : item.estado === 'pendiente',
+                                                            'border-red-300'    : item.estado === 'vencido',
+                                                            'border-emerald-200': item.estado === 'cumplido',
+                                                            'border-slate-200'  : item.estado === 'cancelado'
+                                                         }">
+                                                        {{-- PENDIENTE o VENCIDO: botón para marcar cumplido --}}
+                                                        <template x-if="item.estado === 'pendiente' || item.estado === 'vencido'">
+                                                            <button @click.stop="confirmAction('check', item.id)"
                                                                     class="w-4 h-4 rounded-full border-2 border-slate-300 hover:border-emerald-500 hover:bg-emerald-50 transition-all"
                                                                     title="Marcar cumplido">
                                                             </button>
@@ -493,16 +490,21 @@
 
             performSearch() {
                 this.isSearching = true;
-                const params = new URLSearchParams({
+
+                // Parámetros visibles en la URL (sin ajax ni _t)
+                const visibleParams = new URLSearchParams({
                     search: this.search,
-                    filtro: this.filter,
-                    ajax: '1',
-                    _t: new Date().getTime()
+                    filtro: this.filter
                 });
 
-                window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+                window.history.replaceState({}, '', `${window.location.pathname}?${visibleParams.toString()}`);
 
-                fetch(`${window.location.pathname}?${params.toString()}`, {
+                // Parámetros usados solo para la petición AJAX
+                const requestParams = new URLSearchParams(visibleParams);
+                requestParams.set('ajax', '1');
+                requestParams.set('_t', Date.now().toString());
+
+                fetch(`${window.location.pathname}?${requestParams.toString()}`, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 })
                 .then(r => r.text())
@@ -690,6 +692,7 @@
             closeCrm() {
                 this.isOpen = false;
                 setTimeout(() => {
+                    // recarga limpia; ya no hay ajax=1 en la URL visible
                     window.location.reload();
                 }, 150);
             },

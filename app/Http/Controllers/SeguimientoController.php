@@ -179,12 +179,12 @@ class SeguimientoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'cliente_id'     => 'required|exists:clientes,id',
-            'observacion'    => 'required|string|min:5',
-            'fecha_compromiso' => 'nullable|date|after_or_equal:today',
-            'facturas_ids'   => 'nullable|array',
-            'facturas_ids.*' => 'exists:facturas,id',
-            'monto_compromiso' => 'nullable|numeric|min:0',
+            'cliente_id'        => 'required|exists:clientes,id',
+            'observacion'       => 'required|string|min:5',
+            'fecha_compromiso'  => 'nullable|date|after_or_equal:today',
+            'facturas_ids'      => 'nullable|array',
+            'facturas_ids.*'    => 'exists:facturas,id',
+            'monto_compromiso'  => 'nullable|numeric|min:0',
         ]);
 
         $seguimiento = Seguimiento::create([
@@ -259,5 +259,4 @@ class SeguimientoController extends Controller
 
         return response()->json(['success' => true]);
     }
-    
 }
