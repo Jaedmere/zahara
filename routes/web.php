@@ -112,8 +112,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('roles', RoleController::class);
 
-    // --- REPORTES Y AUDITORÍA ---
-    Route::get('informes/aging', [InformeController::class, 'aging'])->name('informes.aging');
+        // --- REPORTES Y AUDITORÍA ---
+    Route::get('informes/extracto', [InformeController::class, 'extracto'])->name('informes.extracto');
     Route::get('auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
 });
 
