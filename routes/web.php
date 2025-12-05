@@ -100,6 +100,9 @@ Route::middleware('auth')->group(function () {
     
     Route::get('api/seguimientos/{cliente}/historial', [SeguimientoController::class, 'historial'])->name('api.seguimientos.historial');
     Route::post('api/seguimientos/{seguimiento}/check', [SeguimientoController::class, 'check'])->name('api.seguimientos.check');
+    // NUEVA RUTA: CANCELAR COMPROMISO
+    Route::post('api/seguimientos/{seguimiento}/cancel', [SeguimientoController::class, 'cancel'])->name('api.seguimientos.cancel');
+    Route::post('api/seguimientos/{seguimiento}/check', [SeguimientoController::class, 'check'])->name('api.seguimientos.check');
 
     // --- NUEVO: NOTIFICACIONES ---
     Route::get('notificaciones', [SeguimientoController::class, 'notificacionesIndex'])->name('notificaciones.index');
