@@ -5,14 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\Factura;
 use App\Models\Abono;
 use App\Models\EDS;
+use App\Models\Seguimiento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        // 1) Sincronizar seguimientos vencidos SOLO 1 VEZ POR DÍA
+        $todayKey = 'seguimientos_vencidos_sync_' . Carbon::today()->toDateString();
+
+        if (!Cache::has($todayKey)) {
+            Seguimiento::where('estado', 'pendiente')
+                ->whereNotNull('fecha_compromiso')
+                ->whereDate('fecha_compromiso', '<', Carbon::today())
+                ->update(['estado' => 'vencido']);
+
+            Cache::put($todayKey, true, now()->addDay());
+        }
+
+        // 2) Carga de datos para el dashboard
         $eds_list = EDS::where('activo', true)
             ->select('id', 'nombre')
             ->orderBy('nombre')

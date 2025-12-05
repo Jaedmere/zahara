@@ -36,18 +36,6 @@ class SeguimientoController extends Controller
 
     public function index(Request $request)
     {
-        // 1) Sincronizar vencidos SOLO 1 VEZ POR DÍA
-        $todayKey = 'seguimientos_vencidos_sync_' . Carbon::today()->toDateString();
-
-        if (!Cache::has($todayKey)) {
-            Seguimiento::where('estado', 'pendiente')
-                ->whereNotNull('fecha_compromiso')
-                ->whereDate('fecha_compromiso', '<', Carbon::today())
-                ->update(['estado' => 'vencido']);
-
-            Cache::put($todayKey, true, now()->addDay());
-        }
-
         // 2) Filtros de búsqueda
         $search = $request->string('search')->trim()->toString();
         $filtro = $request->input('filtro', 'todos');
