@@ -9,7 +9,8 @@
     {{-- Favicon --}}
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=3">
     <link rel="shortcut icon" href="{{ asset('favicon.svg') }}?v=3">
-    
+    <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}?v=3">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <style>
@@ -152,7 +153,7 @@
                 Reportes
             </div>
 
-            <div x-data="{ open: {{ request()->routeIs('informes.extracto') ? 'true' : 'false' }} }" class="space-y-1">
+            <div x-data="{ open: {{ request()->routeIs('informes.*') ? 'true' : 'false' }} }" class="space-y-1">
                 <button @click="open = !open"
                         class="flex items-center justify-between w-full gap-3 px-4 py-3 rounded-xl font-medium transition-all group cursor-pointer select-none"
                         :class="open ? 'bg-slate-50 text-slate-900' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'">
@@ -175,6 +176,24 @@
                                   d="M4 6h16M4 10h16M4 14h10M4 18h6" />
                         </svg>
                         Extractos por Cliente
+                    </a>
+
+                    <a href="{{ route('informes.cartera_edades') }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors {{ request()->routeIs('informes.cartera_edades') ? 'text-indigo-700 font-medium bg-indigo-50' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' }}">
+                        <svg class="w-4 h-4 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 17v-6h2v6h3l-4 4-4-4h3zM5 3h14v2H5V3z" />
+                        </svg>
+                        Cartera por Edades
+                    </a>
+
+                    <a href="{{ route('informes.estado_cuentas') }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors {{ request()->routeIs('informes.estado_cuentas') ? 'text-indigo-700 font-medium bg-indigo-50' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100' }}">
+                        <svg class="w-4 h-4 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 4a1 1 0 011-1h4l2 3h8a1 1 0 011 1v2H3V4zm0 5h18v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" />
+                        </svg>
+                        Estado de Cuentas a Corte
                     </a>
                 </div>
             </div>
